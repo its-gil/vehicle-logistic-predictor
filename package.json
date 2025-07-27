@@ -9,6 +9,7 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@pinecone-database/pinecone": "^6.1.2",
     "drizzle-kit": "^0.31.4",
     "drizzle-orm": "^0.44.3",
     "lucide-react": "^0.525.0",

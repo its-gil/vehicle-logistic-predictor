@@ -2,6 +2,9 @@ import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/db";
 import { uploads } from "@/db/schema";
 import { parseFileToRows } from "@/utils/parseFileToRows";
+import { rowToChunkLine } from "@/utils/rowToChunkLine";
+import { getEmbedding } from "@/utils/getEmbedding";
+import { pineconeIndex } from "@/utils/pineconeClient";
 import { and } from "drizzle-orm";
 import { eq } from "drizzle-orm/sql/expressions/conditions";
 
@@ -58,9 +61,29 @@ export async function POST(req: NextRequest) {
             return NextResponse.json({ error: e.message || "Failed to parse file" }, { status: 400 });
         }
 
-        // Insert into DB
+        // 1. Turn each row into a chunk string
+        const fields = Object.keys(rows[0] || {});
+        const chunkLines = rows.map((row) => rowToChunkLine(row, fields));
+
+        // 2. Get embeddings for each chunk
+        const embeddings = await Promise.all(chunkLines.map((line) => getEmbedding(line)));
+
+        // 3. Upsert to Pinecone
         try {
             const uploadId = crypto.randomUUID();
+            await pineconeIndex.upsert(
+                chunkLines.map((line, i) => ({
+                    id: `${uploadId}-${i}`,
+                    values: embeddings[i],
+                    metadata: {
+                        uploadId,
+                        tableName,
+                        chunk: line,
+                        rowIndex: i,
+                    },
+                }))
+            );
+
             const [inserted] = await db
                 .insert(uploads)
                 .values({
@@ -127,6 +150,21 @@ export async function DELETE(req: NextRequest) {
         }
         // For demo, use hardcoded userId (replace with real auth in production)
         const userId = "test";
+
+        // Query all vector IDs with this uploadId in metadata
+        const dummyVector = Array(384).fill(0); // dimension must match index
+        const queryResult = await pineconeIndex.query({
+            vector: dummyVector,
+            topK: 10000, // adjust if you expect more
+            filter: { uploadId },
+            includeValues: false,
+            includeMetadata: false,
+        });
+        const idsToDelete = (queryResult.matches || []).map((m: any) => m.id);
+        if (idsToDelete.length > 0) {
+            await pineconeIndex.deleteMany(idsToDelete);
+        }
+
         const result = await db.delete(uploads).where(and(eq(uploads.uploadId, uploadId), eq(uploads.userId, userId)));
         return NextResponse.json({ success: true });
     } catch (e: any) {
