@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getEmbedding } from "@/utils/getEmbedding";
 import { pineconeIndex } from "@/utils/pineconeClient";
-import { generateMistralResponse, ChatMessage } from "@/utils/generateMistralResponse";
+import { generateAIResponse, ChatMessage } from "@/utils/generateAIResponse";
 import { db } from "@/db";
 import { chats, messages } from "@/db/schema";
 import { eq } from "drizzle-orm";
@@ -16,26 +16,52 @@ export async function POST(req: NextRequest) {
         // 1. Get embedding for user input
         const inputEmbedding = await getEmbedding(input);
 
-        // 2. Query Pinecone for top 2 similar chunks
-        const queryResult = await pineconeIndex.query({
-            vector: inputEmbedding,
-            topK: 3,
-            includeMetadata: true,
-        });
-        const topChunks = (queryResult.matches || []).map((m: any) => m.metadata?.chunk).filter(Boolean);
+        // 2. Query Pinecone for top 100 similar chunks
+        let context = "";
+        let contextFound = false;
+        try {
+            const queryResult = await pineconeIndex.query({
+                vector: inputEmbedding,
+                topK: 100,
+                includeMetadata: true,
+            });
+            const topChunks = (queryResult.matches || []).map((m: any) => m.metadata?.chunk).filter(Boolean);
+            context = topChunks.join("\n");
+            contextFound = topChunks.length > 0;
+        } catch (err) {
+            // If Pinecone is empty or unavailable, treat as no context
+            context = "";
+            contextFound = false;
+        }
 
-        // 3. Concatenate user input and top 2 chunks as context
-        const context = topChunks.join("\n");
+        console.log("Context found:", contextFound, "Content length:", context.length);
+        console.log(context);
+
+        // 3. Build prompt
+        let messagesArr: ChatMessage[];
+        if (contextFound) {
+            messagesArr = [
+                {
+                    role: "system",
+                    content: `If useful, refer to the following context:\n${context}\n.`,
+                },
+                { role: "user", content: input },
+            ];
+        } else {
+            messagesArr = [
+                {
+                    role: "system",
+                    content:
+                        "No relevant context is available. Answer the user's question using your general knowledge.",
+                },
+                { role: "user", content: input },
+            ];
+        }
+
+        console.log("Messages array:", messagesArr);
 
         // 4. Call Mistral model with the prompt
-        const messagesArr: ChatMessage[] = [
-            context
-                ? { role: "system", content: `Use the following context to answer the user question.\n${context}` }
-                : undefined,
-            { role: "user", content: input },
-        ].filter(Boolean) as ChatMessage[];
-
-        const answer = await generateMistralResponse(messagesArr);
+        const answer = await generateAIResponse(messagesArr);
 
         // 5. Find or create chat
         let chat_id = chatId;
