@@ -19,7 +19,7 @@ export default function Navbar({ onSidebarToggle, isSidebarOpen, isMobile }: Nav
     return (
         <nav className="fixed top-0 left-0 right-0 h-16 flex items-center px-4 bg-white/80 dark:bg-zinc-900/80 border-b border-zinc-200 dark:border-zinc-800 backdrop-blur z-40">
             <button
-                className="mr-4 flex items-center justify-center p-2 rounded hover:bg-zinc-100 dark:hover:bg-zinc-800"
+                className="mr-4 flex items-center justify-center p-2 rounded hover:bg-zinc-100 dark:hover:bg-zinc-800 cursor-pointer"
                 aria-label={isSidebarOpen ? "Hide sidebar" : "Show sidebar"}
                 onClick={onSidebarToggle}
             >
@@ -40,7 +40,9 @@ export default function Navbar({ onSidebarToggle, isSidebarOpen, isMobile }: Nav
                 </svg>
             </button>
             <div className="text-lg font-semibold text-zinc-900 dark:text-zinc-100 flex-1">{pageTitle}</div>
-            <User className="w-7 h-7 text-zinc-700 dark:text-zinc-200 ml-auto" />
+            <button className="cursor-pointer">
+                <User className="w-7 h-7 text-zinc-700 dark:text-zinc-200 ml-auto" />
+            </button>
         </nav>
     );
 }

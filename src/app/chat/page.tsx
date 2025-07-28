@@ -149,39 +149,56 @@ export default function ChatLayout() {
                     </span>
                 </header>
                 {/* Messages */}
-                <div className="flex-1 overflow-y-auto px-8 py-4" style={{ maxHeight: "calc(100vh - 128px)" }}>
-                    {messages.map((msg, i) => (
-                        <div
-                            key={i}
-                            className={`
-                                flex mb-2
-                                ${msg.role === "assistant" ? "justify-start" : "justify-end"}
-                            `}
-                        >
-                            <div
-                                className={`
-                                    p-4 rounded max-w-2xl
-                                    ${msg.role === "assistant" ? "bg-blue-600 text-left" : "bg-green-600 text-right"}
-                                `}
-                                style={{ minWidth: "120px" }}
-                            >
-                                <div className="font-semibold"></div>
-                                <div className="text-lg text-zinc-900 dark:text-zinc-100 whitespace-pre-line">
-                                    {msg.content}
+                <div className="flex-1 overflow-y-auto px-8 py-4 relative" style={{ maxHeight: "calc(100vh - 128px)" }}>
+                    {selectedChatId ? (
+                        <>
+                            {messages.map((msg, i) => (
+                                <div
+                                    key={i}
+                                    className={`
+                                        flex mb-2
+                                        ${msg.role === "assistant" ? "justify-start" : "justify-end"}
+                                    `}
+                                >
+                                    <div
+                                        className={`
+                                            p-4 rounded max-w-2xl
+                                            ${
+                                                msg.role === "assistant"
+                                                    ? "bg-blue-600 text-left"
+                                                    : "bg-green-600 text-right"
+                                            }
+                                        `}
+                                    >
+                                        <div className="font-semibold"></div>
+                                        <div className="text-lg text-zinc-900 dark:text-zinc-100 whitespace-pre-line">
+                                            {msg.content}
+                                        </div>
+                                    </div>
                                 </div>
+                            ))}
+                            <div ref={messagesEndRef} />
+                        </>
+                    ) : (
+                        <div className="absolute inset-0 flex items-center justify-center">
+                            <div className="text-zinc-400 text-xl font-medium bg-zinc-100 dark:bg-zinc-800 px-8 py-6 rounded shadow">
+                                No chat created yet. Click &quot;+ New Chat&quot; to start a conversation.
                             </div>
                         </div>
-                    ))}
-                    <div ref={messagesEndRef} />
+                    )}
                 </div>
                 {/* Input fixed at bottom */}
                 <form
-                    className="w-full flex items-center p-4 gap-2 border-t border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 sticky bottom-0 z-10"
+                    className={`w-full flex items-center p-4 gap-2 border-t border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 sticky bottom-0 z-10
+                        ${!selectedChatId ? "opacity-60 pointer-events-none" : ""}
+                    `}
                     onSubmit={handleSubmit}
                 >
                     <input
                         type="text"
-                        className="flex-1 rounded border border-zinc-300 dark:border-zinc-700 px-4 py-2 text-lg bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className={`flex-1 rounded border border-zinc-300 dark:border-zinc-700 px-4 py-2 text-lg bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-horizontal-text
+                            ${!selectedChatId ? "bg-zinc-200 dark:bg-zinc-700" : ""}
+                        `}
                         placeholder="Type your message..."
                         value={input}
                         onChange={(e) => setInput(e.target.value)}
@@ -189,7 +206,9 @@ export default function ChatLayout() {
                     />
                     <button
                         type="submit"
-                        className="px-4 py-2 rounded bg-blue-600 text-white font-semibold hover:bg-blue-700 transition-colors cursor-pointer"
+                        className={`px-4 py-2 rounded bg-blue-600 text-white font-semibold hover:bg-blue-700 transition-colors cursor-pointer
+                            ${!selectedChatId ? "bg-zinc-400 hover:bg-zinc-400" : ""}
+                        `}
                         disabled={loading || !selectedChatId}
                     >
                         {loading ? "Sending..." : "Send"}

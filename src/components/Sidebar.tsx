@@ -56,7 +56,7 @@ export default function Sidebar({ isOpen, isMobile, navbarHeight = 64, onClose }
                             </Link>
                         </nav>
                         <div className="flex-1" />
-                        <button className="flex items-center gap-2 text-red-600 dark:text-red-400 font-semibold hover:underline mt-8">
+                        <button className="flex items-center gap-2 text-red-600 dark:text-red-400 font-semibold hover:underline mt-8 cursor-pointer">
                             <LogOut className="w-5 h-5" />
                             Logout
                         </button>
@@ -106,7 +106,7 @@ export default function Sidebar({ isOpen, isMobile, navbarHeight = 64, onClose }
                     </Link>
                 </nav>
                 <div className="flex-1" />
-                <button className="flex items-center gap-2 text-red-600 dark:text-red-400 font-semibold hover:underline mt-8">
+                <button className="flex items-center gap-2 text-red-600 dark:text-red-400 font-semibold hover:underline mt-8 cursor-pointer">
                     <LogOut className="w-5 h-5" />
                     Logout
                 </button>

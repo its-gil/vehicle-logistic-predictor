@@ -103,7 +103,7 @@ export default function TablePage() {
                     onChange={handleFileChange}
                 />
                 <button
-                    className="flex items-center gap-1 px-3 py-1 rounded bg-blue-600 text-white text-sm font-medium hover:bg-blue-700 transition-colors"
+                    className="flex items-center gap-1 px-3 py-1 rounded bg-blue-600 text-white text-sm font-medium hover:bg-blue-700 transition-colors cursor-pointer"
                     onClick={() => fileInputRef.current?.click()}
                 >
                     <Plus className="w-4 h-4" />
@@ -128,7 +128,7 @@ export default function TablePage() {
                                 <div className="text-xs text-zinc-500">Rows: {table.rows}</div>
                                 <div className="text-xs text-zinc-500">{table.sizeMB} MB</div>
                                 <button
-                                    className="ml-2 p-1 rounded hover:bg-red-100 dark:hover:bg-red-900"
+                                    className="ml-2 p-1 rounded hover:bg-red-100 dark:hover:bg-red-900 cursor-pointer"
                                     aria-label="Delete table"
                                     onClick={() => handleDelete(idx)}
                                 >
