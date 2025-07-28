@@ -8,7 +8,7 @@ export interface ChatMessage {
 
 export async function generateAIResponse(
     messages: ChatMessage[],
-    model: string = "mistralai/Mistral-7B-Instruct-v0.2:featherless-ai"
+    model: string = "meta-llama/Llama-3.3-70B-Instruct"
 ): Promise<string> {
     try {
         const response = await fetch(HF_API_GEN_URL, {
@@ -31,18 +31,18 @@ export async function generateAIResponse(
             return "";
         } else {
             // Try fallback model if available
-            if (model !== "meta-llama/Meta-Llama-3-8B-Instruct") {
-                console.warn(`Mistral API error: ${response.status}. Trying fallback model...`);
-                return await generateAIResponse(messages, "meta-llama/Llama-3.3-70B-Instruct");
+            if (model !== "mistralai/Mistral-7B-Instruct-v0.2:featherless-ai") {
+                console.warn(`Llama API error: ${response.status}. Trying fallback model...`);
+                return await generateAIResponse(messages, "mistralai/Mistral-7B-Instruct-v0.2:featherless-ai");
             }
             console.warn(`Both models failed: ${response.status}`);
             return "";
         }
     } catch (error) {
         // Try fallback model if available
-        if (model !== "meta-llama/Llama-3.3-70B-Instruct") {
+        if (model !== "mistralai/Mistral-7B-Instruct-v0.2:featherless-ai") {
             console.error("Error generating AI response, trying fallback:", error);
-            return await generateAIResponse(messages, "meta-llama/Llama-3.3-70B-Instruct");
+            return await generateAIResponse(messages, "mistralai/Mistral-7B-Instruct-v0.2:featherless-ai");
         }
         console.error("Error generating Mistral response:", error);
         return "";
