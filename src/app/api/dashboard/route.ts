@@ -40,33 +40,24 @@ async function fetchHereIncidents(origin: string, destination: string) {
 }
 
 export async function GET() {
-    // 1. Get uploaded car/destination data
-    const uploaded = await db.select().from(uploads).orderBy(uploads.createdAt).limit(1);
-    const carTable = uploaded[0]?.rowData || [];
+    // 1. Get all uploaded car/destination data (not just the latest)
+    const uploaded = await db.select().from(uploads).orderBy(uploads.createdAt);
+    const allCarTables = uploaded.map((u) => u.rowData).filter(Boolean);
 
-    const origin = "52.4077,8.0016"; //bramsche
-    const destination = "53.5488,9.9872"; //hamburg
-    const blockages = await fetchHereIncidents(origin, destination);
-    console.log("Blockages along route:", blockages);
-
-    // 3. Build prompt for AI
+    // 2. Build prompt for AI, including all table contents and request for explanation
     const prompt = `
-Given the following car data and current road blockages in Germany, estimate the percentage of vehicles that are potentially blocked. Only respond with a percentage (e.g., '23%').
+Given the blockages in Germany from the provided tables, explain your reasoning by mentioning the vehicles with their start and ending points, the blocked roads and then estimate the percentage of vehicles that are potentially blocked on their way of being delivered. At the end, return only the percentage of vehicles from the total vehicles (e.g., '23%') on a new line.
 
-Cars and destinations:
-${JSON.stringify(carTable, null, 2)}
-
-Road blockages:
-${JSON.stringify(blockages, null, 2)}
+Here are all tables with vehicles and their destinations:
+${JSON.stringify(allCarTables, null, 2)}
 `;
 
-    console.log("Generated prompt:", prompt);
-
-    // 4. Call AI model
-    const percentage = await generateAIResponse([
+    // 3. Call AI model
+    const aiResponse = await generateAIResponse([
         {
             role: "system",
-            content: "You are an assistant that only responds with a percentage (e.g., '23%').",
+            content:
+                "You are an assistant that explains your logic step by step and at the end only returns a percentage (e.g., '23%') on a new line.",
         },
         {
             role: "user",
@@ -74,7 +65,15 @@ ${JSON.stringify(blockages, null, 2)}
         },
     ]);
 
-    console.log("AI response percentage:", percentage);
+    // Log the full explanation for debugging
+    console.log("AI full response:", aiResponse);
 
-    return NextResponse.json({ percentage });
+    // Extract only the percentage from the last line of the response
+    const lines = aiResponse.trim().split("\n");
+    const lastLine = lines[lines.length - 1];
+    const match = lastLine.match(/(\d+(\.\d+)?)%/);
+    const percentage = match ? match[0] : null;
+
+    // Return both the full explanation and the percentage
+    return NextResponse.json({ percentage, explanation: aiResponse });
 }

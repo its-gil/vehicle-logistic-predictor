@@ -155,7 +155,7 @@ export async function DELETE(req: NextRequest) {
         const dummyVector = Array(384).fill(0); // dimension must match index
         const queryResult = await pineconeIndex.query({
             vector: dummyVector,
-            topK: 10000, // adjust if you expect more
+            topK: 100, // adjust if you expect more
             filter: { uploadId },
             includeValues: false,
             includeMetadata: false,
