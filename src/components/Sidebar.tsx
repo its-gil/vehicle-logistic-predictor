@@ -74,7 +74,9 @@ export default function Sidebar({ isOpen, isMobile, navbarHeight = 64, onClose }
             style={{ transitionProperty: "transform, left, width" }}
         >
             <div className="flex flex-col flex-1">
-                <h1 className="text-xl font-bold mb-8 text-zinc-900 dark:text-zinc-100">Vehicle Logistic Predictor</h1>
+                <h1 className="text-xl font-bold mb-8 text-zinc-900 dark:text-zinc-100">
+                    Vehicle Logistic Predictor@MBTI
+                </h1>
                 <nav className="flex flex-col gap-4">
                     <Link
                         href="/"
