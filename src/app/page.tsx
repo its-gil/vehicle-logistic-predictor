@@ -1,11 +1,32 @@
 "use client";
 import { useState, useEffect } from "react";
 import dynamic from "next/dynamic";
+import Papa from "papaparse";
 import BarChart from "@/components/BarChart";
 import RingChart from "@/components/RingChart";
+import { scrapeNOAATropicalPoints, NOAAFeature } from "@/utils/scrapeNOAATropicalPoints";
+import { scrapeNOAATropicalArrows, NOAAArrowFeature } from "@/utils/scrapeNOAATropicalArrows";
+import { scrapeNOAATropicalRegions, NOAARegionFeature } from "@/utils/scrapeNOAATropicalRegions";
+import { scrapeNOAAActiveStorms, NOAAStorm } from "@/utils/scrapeNOAAActiveStorms";
+import { cityPortList } from "@/utils/cityPortList";
+import { scrapeCityAlerts } from "@/utils/scrapeCityAlerts";
 
-// Dynamically import WorldMap to avoid SSR issues with leaflet
+// Dynamically import leaflet components
 const WorldMap = dynamic(() => import("@/components/WorldMap").then((mod) => mod.WorldMap), { ssr: false });
+const MapContainer = dynamic(() => import("react-leaflet").then((mod) => mod.MapContainer), { ssr: false });
+const TileLayer = dynamic(() => import("react-leaflet").then((mod) => mod.TileLayer), { ssr: false });
+const Polyline = dynamic(() => import("react-leaflet").then((mod) => mod.Polyline), { ssr: false });
+const Tooltip = dynamic(() => import("react-leaflet").then((mod) => mod.Tooltip), { ssr: false });
+const Polygon = dynamic(() => import("react-leaflet").then((mod) => mod.Polygon), { ssr: false });
+const CircleMarker = dynamic(() => import("react-leaflet").then((mod) => mod.CircleMarker), { ssr: false });
+
+type CityWeatherResult = {
+    current: any;
+    hourly_2days: any;
+    hourly_7days: any;
+    daily_2days: any;
+    daily_7days: any;
+};
 
 export default function Home() {
     const [percentage, setPercentage] = useState<number | null>(null);
@@ -16,14 +37,31 @@ export default function Home() {
     const [mapData, setMapData] = useState<any[]>([]);
     const [showMap, setShowMap] = useState(false);
     const [selectedJourney, setSelectedJourney] = useState<string>("");
+    const [selectedMmsi, setSelectedMmsi] = useState<string>("");
+    const [noaaPoints, setNoaaPoints] = useState<NOAAFeature[]>([]);
+    const [arrows, setArrows] = useState<NOAAArrowFeature[]>([]);
+    const [regions, setRegions] = useState<NOAARegionFeature[]>([]);
+    const [atlanticStorms, setAtlanticStorms] = useState<NOAAStorm[] | null>(null);
+    const [stormsLoading, setStormsLoading] = useState(false);
+    const [routePoints, setRoutePoints] = useState<{ lat: number; lon: number }[]>([]);
+    const [cityAlerts, setCityAlerts] = useState<{ name: string; localtime: string; alerts: any[] }[]>([]);
 
-    // Load map data on page load
+    type Port = {
+        name: string;
+        lat: number;
+        lon: number;
+        [key: string]: any;
+    };
+    const [selectedPort, setSelectedPort] = useState<Port | null>(null);
+    const [portWeather, setPortWeather] = useState<CityWeatherResult | null>(null);
+    const [weatherLoading, setWeatherLoading] = useState(false);
+
     useEffect(() => {
         async function fetchMapData() {
             const res = await fetch("/api/ships-positions");
             const data = await res.json();
             const points = data.map((row: any) => ({
-                uuid: row.uuid,
+                mmsi: row.mmsi,
                 journey_id: row.journey_id,
                 lat: parseFloat(row.lat),
                 lon: parseFloat(row.lon),
@@ -31,19 +69,114 @@ export default function Home() {
             }));
             setMapData(points);
             setShowMap(true);
-            // Set default selected journey to the first journey_id
             if (points.length > 0) {
                 setSelectedJourney(points[0].journey_id);
+                setSelectedMmsi(points[0].mmsi);
             }
         }
         fetchMapData();
     }, []);
 
-    // Get all unique journey_ids for the selector
-    const journeyIds = Array.from(new Set(mapData.map((p) => p.journey_id)));
+    useEffect(() => {
+        scrapeNOAATropicalPoints().then(setNoaaPoints).catch(console.error);
+        scrapeNOAATropicalArrows().then(setArrows).catch(console.error);
+        scrapeNOAATropicalRegions().then(setRegions).catch(console.error);
+    }, []);
 
-    // Filter data for the selected journey
+    // Fetch North Atlantic storms on mount
+    useEffect(() => {
+        setStormsLoading(true);
+        fetch("/api/storms")
+            .then((res) => res.json())
+            .then(setAtlanticStorms)
+            .finally(() => setStormsLoading(false));
+    }, []);
+
+    // Load route points from CSV
+    useEffect(() => {
+        fetch("/routes_flat.csv")
+            .then((res) => res.text())
+            .then((csvText) => {
+                const parsed = Papa.parse(csvText, { header: true });
+                if (parsed.data && Array.isArray(parsed.data)) {
+                    // Group by lat/lon to check for overlaps
+                    const pointMap = new Map<string, any>();
+                    for (const row of parsed.data as any[]) {
+                        const lat = parseFloat(row.lat);
+                        const lon = parseFloat(row.lon);
+                        const from_port_name = row.from_port_name;
+                        const to_port_name = row.to_port_name;
+                        if (isNaN(lat) || isNaN(lon) || !from_port_name || !to_port_name) continue;
+                        const key = `${lat.toFixed(6)},${lon.toFixed(6)}`;
+                        const existing = pointMap.get(key);
+                        // If overlap, prioritize if from_port_name or to_port_name is "Brunswick"
+                        if (
+                            !existing ||
+                            from_port_name?.toLowerCase().includes("brunswick") ||
+                            to_port_name?.toLowerCase().includes("brunswick")
+                        ) {
+                            pointMap.set(key, {
+                                lat,
+                                lon,
+                                from_port_name,
+                                to_port_name,
+                            });
+                        }
+                    }
+                    setRoutePoints(Array.from(pointMap.values()));
+                }
+            });
+    }, []);
+
+    useEffect(() => {
+        // Fetch city weather alerts on mount
+        fetch("/api/city-alerts")
+            .then((res) => res.json())
+            .then(setCityAlerts);
+    }, []);
+
+    // Fetch weather for selected port
+    useEffect(() => {
+        if (!selectedPort) {
+            setPortWeather(null);
+            return;
+        }
+        setWeatherLoading(true);
+        fetch(`/api/city-weather?lat=${selectedPort.lat}&lon=${selectedPort.lon}`)
+            .then((res) => res.json())
+            .then(setPortWeather)
+            .finally(() => setWeatherLoading(false));
+    }, [selectedPort]);
+
+    const journeyIds = Array.from(new Set(mapData.map((p) => p.journey_id)));
+    const mmsis = Array.from(new Set(mapData.map((p) => p.mmsi)));
     const filteredData = selectedJourney ? mapData.filter((p) => p.journey_id === selectedJourney) : [];
+    const filteredDataMmsi = selectedMmsi ? mapData.filter((p) => p.mmsi === selectedMmsi) : [];
+
+    const center: [number, number] = [30, -30];
+
+    function getColor(prob2day: string, prob7day: string) {
+        const p2 = parseInt(prob2day.replace("%", ""), 10) || 0;
+        const p7 = parseInt(prob7day.replace("%", ""), 10) || 0;
+        return p2 > 60 || p7 > 60 ? "red" : "yellow";
+    }
+
+    function extractNOAADate(idp_source?: string): string | null {
+        if (!idp_source) return null;
+        const match = idp_source.match(/(\d{4})(\d{2})(\d{2})(\d{2})(\d{2})$/);
+        if (!match) return null;
+        let [, year, month, day, hour, minute] = match;
+        // Add 2 hours for Germany time
+        const date = new Date(Number(year), Number(month) - 1, Number(day), Number(hour), Number(minute));
+        date.setHours(date.getHours() + 2);
+        // Format with leading zeros
+        const pad = (n: number) => n.toString().padStart(2, "0");
+        return `${pad(date.getDate())}.${pad(date.getMonth() + 1)}.${date.getFullYear()} ${pad(date.getHours())}:${pad(
+            date.getMinutes()
+        )} (GMT +2)`;
+    }
+
+    const noaaDate = extractNOAADate(noaaPoints[0]?.idp_source) || null;
 
     async function refreshBlockedPercentage() {
         setLoading(true);
@@ -87,46 +220,498 @@ export default function Home() {
         }
     }
 
-    return (
-        <div className="font-sans grid grid-rows-[10px_1fr_10px] items-center justify-items-center p-8 pb-8 gap-8 sm:p-4">
-            <header className="flex items-center justify-between w-full gap-4">
-                <button
-                    onClick={refreshBlockedPercentage}
-                    className="px-4 py-2 rounded bg-blue-600 text-white font-semibold hover:bg-blue-700 transition-colors"
-                    disabled={loading}
-                >
-                    {loading ? "Refreshing..." : "Refresh"}
-                </button>
-                <button
-                    onClick={handleShipRequest}
-                    className="px-4 py-2 rounded bg-green-600 text-white font-semibold hover:bg-green-700 transition-colors"
-                    disabled={shipLoading}
-                >
-                    {shipLoading ? "Loading Ships..." : "Get Ships"}
-                </button>
-                <button
-                    onClick={handlePortsRequest}
-                    className="px-4 py-2 rounded bg-purple-600 text-white font-semibold hover:bg-purple-700 transition-colors"
-                    disabled={portsLoading}
-                >
-                    {portsLoading ? "Loading Ports..." : "Get All Ports"}
-                </button>
-            </header>
-            <main className="flex flex-col items-center w-full">
-                <div className="flex flex-wrap justify-center gap-16 w-full">
-                    <RingChart value={percentage ?? 0} comment="Potentiell blockierte Fahrzeuge" />
+    // Only 2-day prognosis points (origin points)
+    const noaaPoints2Day = noaaPoints.filter((p) => p.prob2day && p.prob2day !== "0%");
+
+    // --- Ports World Map with weather info on click ---
+    function PortsWorldMapWithWeather() {
+        const mapCenter: [number, number] = [40, -30];
+        return (
+            <div className="flex flex-row gap-4 items-start">
+                <div style={{ minWidth: 400, maxWidth: 600, width: "40%" }}>
+                    <MapContainer center={mapCenter} zoom={2} style={{ height: "350px", width: "100%" }}>
+                        <TileLayer
+                            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                            attribution="&copy; OpenStreetMap contributors"
+                        />
+                        {cityPortList.map((port) => (
+                            <CircleMarker
+                                key={port.name}
+                                center={[port.lat, port.lon]}
+                                radius={8}
+                                pathOptions={{
+                                    color: "#222",
+                                    fillColor: "#0074D9",
+                                    fillOpacity: 0.85,
+                                }}
+                                eventHandlers={{
+                                    click: () => setSelectedPort(port),
+                                }}
+                            >
+                                <Tooltip direction="top" offset={[0, -5]} opacity={1} permanent={false}>
+                                    <div>
+                                        <div className="font-semibold">{port.name}</div>
+                                        <div>
+                                            Lat: {port.lat}, Lon: {port.lon}
+                                        </div>
+                                    </div>
+                                </Tooltip>
+                            </CircleMarker>
+                        ))}
+                    </MapContainer>
                 </div>
-                {explanation && (
-                    <div className="mt-8 w-full max-w-2xl bg-zinc-100 dark:bg-zinc-800 rounded p-4 text-sm whitespace-pre-line">
-                        <strong>Erklärung:</strong>
-                        <br />
-                        {explanation}
-                    </div>
+                <div className="flex-1 min-h-[350px]">
+                    {selectedPort && (
+                        <div className="bg-black rounded shadow p-4">
+                            <div className="font-bold mb-2 text-lg">{selectedPort.name} Weather</div>
+                            <div className="mb-2">
+                                <span className="font-semibold">Coordinates:</span> {selectedPort.lat},{" "}
+                                {selectedPort.lon}
+                            </div>
+                            {weatherLoading && <div>Loading weather...</div>}
+                            {!weatherLoading && portWeather && (
+                                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                    {/* Column 1: Current */}
+                                    <div>
+                                        <div className="mb-2">
+                                            <span className="font-semibold">Current:</span>
+                                            <pre className="whitespace-pre-wrap text-xs bg-black rounded p-2">
+                                                {JSON.stringify(portWeather.current, null, 2)}
+                                            </pre>
+                                        </div>
+                                    </div>
+                                    {/* Column 2: Hourly */}
+                                    <div>
+                                        <div className="mb-2">
+                                            <span className="font-semibold">Hourly in 2 days:</span>
+                                            <pre className="whitespace-pre-wrap text-xs bg-black rounded p-2">
+                                                {JSON.stringify(portWeather.hourly_2days, null, 2)}
+                                            </pre>
+                                        </div>
+                                        <div className="mb-2">
+                                            <span className="font-semibold">Hourly in 7 days:</span>
+                                            <pre className="whitespace-pre-wrap text-xs bg-black rounded p-2">
+                                                {JSON.stringify(portWeather.hourly_7days, null, 2)}
+                                            </pre>
+                                        </div>
+                                    </div>
+                                    {/* Column 3: Daily */}
+                                    <div>
+                                        <div className="mb-2">
+                                            <span className="font-semibold">Daily in 2 days:</span>
+                                            <pre className="whitespace-pre-wrap text-xs bg-black rounded p-2">
+                                                {JSON.stringify(portWeather.daily_2days, null, 2)}
+                                            </pre>
+                                        </div>
+                                        <div>
+                                            <span className="font-semibold">Daily in 7 days:</span>
+                                            <pre className="whitespace-pre-wrap text-xs bg-black rounded p-2">
+                                                {JSON.stringify(portWeather.daily_7days, null, 2)}
+                                            </pre>
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+                            {!weatherLoading && !portWeather && <div>No weather data available.</div>}
+                        </div>
+                    )}
+                    {!selectedPort && (
+                        <div className="flex items-center justify-center min-h-[350px] text-zinc-500">
+                            Click a port to see weather info.
+                        </div>
+                    )}
+                </div>
+            </div>
+        );
+    }
+
+    // Storms map content
+    function StormsMapBox() {
+        if (stormsLoading) {
+            return <div className="flex items-center justify-center h-full w-full text-lg">Loading storms...</div>;
+        }
+        if (!atlanticStorms || atlanticStorms.length === 0) {
+            return (
+                <div className="flex items-center justify-center h-full w-full text-lg text-zinc-700">
+                    No active storms in the North Atlantic.
+                </div>
+            );
+        }
+        // Show all storms on the map with tooltips, ships greyed out in background
+        return (
+            <MapContainer center={center} zoom={2} style={{ height: "350px", width: "100%" }}>
+                <TileLayer
+                    url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                    attribution="&copy; OpenStreetMap contributors"
+                />
+                {/* All journeys as faded grey polylines */}
+                {Object.values(
+                    mapData.reduce<Record<string, any[]>>((acc, point) => {
+                        acc[point.journey_id] = acc[point.journey_id] || [];
+                        acc[point.journey_id].push(point);
+                        return acc;
+                    }, {})
+                ).map((points, idx) => (
+                    <Polyline
+                        key={idx}
+                        positions={points.map((p) => [p.lat, p.lon])}
+                        color="rgba(100,100,100,0.3)"
+                        weight={2}
+                        opacity={0.5}
+                    />
+                ))}
+                {/* Storms as points with tooltips */}
+                {atlanticStorms.map((storm) => (
+                    <CircleMarker
+                        key={storm.id}
+                        center={[storm.latitudeNumeric, storm.longitudeNumeric]}
+                        radius={12}
+                        pathOptions={{
+                            color: "red",
+                            fillColor: "red",
+                            fillOpacity: 0.8,
+                        }}
+                    >
+                        <Tooltip direction="top" offset={[0, -5]} opacity={1} permanent={false}>
+                            <div>
+                                <div className="font-bold">{storm.name}</div>
+                                <div>
+                                    <span className="font-semibold">Classification:</span> {storm.classification}
+                                </div>
+                                <div>
+                                    <span className="font-semibold">Location:</span> {storm.latitude}, {storm.longitude}
+                                </div>
+                                <div>
+                                    <span className="font-semibold">Speed:</span> {storm.movementSpeed} kt
+                                </div>
+                                <div>
+                                    <span className="font-semibold">Direction:</span> {storm.movementDir}&deg;
+                                </div>
+                                <div>
+                                    <span className="font-semibold">Last Update:</span> {storm.lastUpdate}
+                                </div>
+                            </div>
+                        </Tooltip>
+                    </CircleMarker>
+                ))}
+            </MapContainer>
+        );
+    }
+
+    // Replace the RoutesPointsMap function with the following:
+    function RoutesPointsMap() {
+        const center: [number, number] = [30, -30];
+
+        // Group by route: from_port_name + " → " + to_port_name
+        const [routeGroups, colorKeys]: [
+            Record<string, { lat: number; lon: number; from_port_name: string; to_port_name: string }[]>,
+            string[]
+        ] = (() => {
+            if (routePoints.length === 0) return [{}, []];
+            const groups: Record<string, { lat: number; lon: number; from_port_name: string; to_port_name: string }[]> =
+                {};
+            for (const p of routePoints as any[]) {
+                const key = `${p.from_port_name} → ${p.to_port_name}`;
+                if (!groups[key]) groups[key] = [];
+                groups[key].push({
+                    lat: p.lat,
+                    lon: p.lon,
+                    from_port_name: p.from_port_name,
+                    to_port_name: p.to_port_name,
+                });
+            }
+            return [groups, Object.keys(groups)];
+        })();
+
+        // Color palette
+        const colors = [
+            "#0074D9",
+            "#FF4136",
+            "#2ECC40",
+            "#FF851B",
+            "#B10DC9",
+            "#7FDBFF",
+            "#39CCCC",
+            "#01FF70",
+            "#F012BE",
+            "#85144b",
+            "#3D9970",
+            "#111111",
+            "#AAAAAA",
+            "#FFDC00",
+            "#001f3f",
+            "#F012BE",
+            "#FF4136",
+            "#2ECC40",
+        ];
+
+        return (
+            <MapContainer center={center} zoom={2} style={{ height: "350px", width: "100%" }}>
+                <TileLayer
+                    url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                    attribution="&copy; OpenStreetMap contributors"
+                />
+                {colorKeys.map((route, idx) =>
+                    routeGroups[route].map((p, i) => {
+                        const isBrunswick =
+                            p.from_port_name?.toLowerCase().includes("brunswick") ||
+                            p.to_port_name?.toLowerCase().includes("brunswick");
+                        return (
+                            <CircleMarker
+                                key={route + "_" + i}
+                                center={[p.lat, p.lon]}
+                                radius={isBrunswick ? 2 : 1}
+                                pathOptions={{
+                                    color: colors[idx % colors.length],
+                                    fillColor: colors[idx % colors.length],
+                                    fillOpacity: 0.7,
+                                }}
+                            >
+                                <Tooltip direction="top" offset={[0, -5]} opacity={1} permanent={false}>
+                                    <div>
+                                        <div className="font-semibold">{route}</div>
+                                        <div>
+                                            Lat: {p.lat}, Lon: {p.lon}
+                                        </div>
+                                    </div>
+                                </Tooltip>
+                            </CircleMarker>
+                        );
+                    })
                 )}
-                {showMap && (
-                    <div className="w-full max-w-4xl flex flex-col items-center">
+            </MapContainer>
+        );
+    }
+
+    function PortsWorldMap() {
+        const center: [number, number] = [40, -30];
+
+        return (
+            <MapContainer center={center} zoom={2} style={{ height: "350px", width: "100%" }}>
+                <TileLayer
+                    url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                    attribution="&copy; OpenStreetMap contributors"
+                />
+                {cityPortList.map((port, idx) => (
+                    <CircleMarker
+                        key={port.name}
+                        center={[port.lat, port.lon]}
+                        radius={8}
+                        pathOptions={{
+                            color: "#222",
+                            fillColor: "#0074D9",
+                            fillOpacity: 0.85,
+                        }}
+                    >
+                        <Tooltip direction="top" offset={[0, -5]} opacity={1} permanent={false}>
+                            <div>
+                                <div className="font-semibold">{port.name}</div>
+                                <div>
+                                    Lat: {port.lat}, Lon: {port.lon}
+                                </div>
+                            </div>
+                        </Tooltip>
+                    </CircleMarker>
+                ))}
+            </MapContainer>
+        );
+    }
+
+    return (
+        <div className="font-sans flex flex-col items-center p-2 pb-8 gap-8 sm:p-1 max-w-[2100px] mx-auto">
+            <main className="flex flex-col items-center w-full">
+                {/* Add the ports world map with weather info */}
+                <div className="w-full max-w-5xl mb-8">
+                    <div className="mb-2 font-semibold text-lg text-center">All Ports (click for weather)</div>
+                    <PortsWorldMapWithWeather />
+                </div>
+                {/* 2x3 grid */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full" style={{ minHeight: 1200 }}>
+                    {/* 1. Storms Map/Box */}
+                    <div className="flex flex-col">
+                        <div className="mb-2 font-semibold text-lg text-center">
+                            Active Storms in the North Atlantic
+                        </div>
+                        <div className="flex-1 min-h-[350px] flex items-center justify-center bg-white rounded shadow">
+                            <StormsMapBox />
+                        </div>
+                    </div>
+                    {/* 2. Cyclone 2-day prognosis map */}
+                    <div className="flex flex-col">
+                        <div className="mb-2 font-semibold text-lg text-center">
+                            Cyclone 2-Day Prognosis (Origin Points) + All Ships
+                        </div>
+                        <div className="flex-1 min-h-[350px]">
+                            <MapContainer center={center} zoom={2} style={{ height: "350px", width: "100%" }}>
+                                <TileLayer
+                                    url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                                    attribution="&copy; OpenStreetMap contributors"
+                                />
+                                {/* All journeys as faded grey polylines */}
+                                {Object.values(
+                                    mapData.reduce<Record<string, any[]>>((acc, point) => {
+                                        acc[point.journey_id] = acc[point.journey_id] || [];
+                                        acc[point.journey_id].push(point);
+                                        return acc;
+                                    }, {})
+                                ).map((points, idx) => (
+                                    <Polyline
+                                        key={idx}
+                                        positions={points.map((p) => [p.lat, p.lon])}
+                                        color="rgba(100,100,100,0.3)"
+                                        weight={2}
+                                        opacity={0.5}
+                                    />
+                                ))}
+                                {/* Only 2-day prognosis origin points */}
+                                {noaaPoints2Day.map((p) => (
+                                    <CircleMarker
+                                        key={p.id}
+                                        center={[p.lat, p.lon]}
+                                        radius={7}
+                                        pathOptions={{
+                                            color: getColor(p.prob2day, p.prob7day),
+                                            fillColor: getColor(p.prob2day, p.prob7day),
+                                            fillOpacity: 0.9,
+                                        }}
+                                    >
+                                        <Tooltip direction="top" offset={[0, -5]} opacity={1} permanent={false}>
+                                            <div>
+                                                <div>
+                                                    Lat: {p.lat}, Lon: {p.lon}
+                                                </div>
+                                                <div>2-day: {p.prob2day}</div>
+                                                <div>7-day: {p.prob7day}</div>
+                                            </div>
+                                        </Tooltip>
+                                    </CircleMarker>
+                                ))}
+                            </MapContainer>
+                        </div>
+                    </div>
+                    {/* 3. Cyclone full disturbance map */}
+                    <div className="flex flex-col">
+                        <div className="mb-2 font-semibold text-lg text-center">
+                            Cyclone Disturbance Areas, Arrows & Origins + All Ships
+                        </div>
+                        <div className="flex-1 min-h-[350px]">
+                            <MapContainer center={center} zoom={2} style={{ height: "350px", width: "100%" }}>
+                                <TileLayer
+                                    url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                                    attribution="&copy; OpenStreetMap contributors"
+                                />
+                                {/* All journeys as faded grey polylines in background */}
+                                {Object.values(
+                                    mapData.reduce<Record<string, any[]>>((acc, point) => {
+                                        acc[point.journey_id] = acc[point.journey_id] || [];
+                                        acc[point.journey_id].push(point);
+                                        return acc;
+                                    }, {})
+                                ).map((points, idx) => (
+                                    <Polyline
+                                        key={idx}
+                                        positions={points.map((p) => [p.lat, p.lon])}
+                                        color="rgba(100,100,100,0.3)"
+                                        weight={2}
+                                        opacity={0.5}
+                                    />
+                                ))}
+                                {/* Regions as polygons */}
+                                {regions.map((region) => (
+                                    <Polygon
+                                        key={region.id}
+                                        positions={region.coordinates}
+                                        pathOptions={{
+                                            color: getColor(region.prob2day, region.prob7day),
+                                            fillColor: getColor(region.prob2day, region.prob7day),
+                                            fillOpacity: 0.3,
+                                        }}
+                                    >
+                                        <Tooltip sticky>
+                                            <div>
+                                                <div>2-day: {region.prob2day}</div>
+                                                <div>7-day: {region.prob7day}</div>
+                                            </div>
+                                        </Tooltip>
+                                    </Polygon>
+                                ))}
+                                {/* Arrows as polylines */}
+                                {arrows.map((arrow) => (
+                                    <Polyline
+                                        key={arrow.id}
+                                        positions={arrow.coordinates}
+                                        color={getColor(arrow.prob2day, arrow.prob7day)}
+                                        weight={4}
+                                    >
+                                        <Tooltip sticky>
+                                            <div>
+                                                <div>Basin: {arrow.basin}</div>
+                                                <div>2-day: {arrow.prob2day}</div>
+                                                <div>7-day: {arrow.prob7day}</div>
+                                            </div>
+                                        </Tooltip>
+                                    </Polyline>
+                                ))}
+                                {/* All origin points */}
+                                {noaaPoints.map((p) => (
+                                    <CircleMarker
+                                        key={p.id}
+                                        center={[p.lat, p.lon]}
+                                        radius={7}
+                                        pathOptions={{
+                                            color: getColor(p.prob2day, p.prob7day),
+                                            fillColor: getColor(p.prob2day, p.prob7day),
+                                            fillOpacity: 0.9,
+                                        }}
+                                    >
+                                        <Tooltip direction="top" offset={[0, -5]} opacity={1} permanent={false}>
+                                            <div>
+                                                <div>
+                                                    Lat: {p.lat}, Lon: {p.lon}
+                                                </div>
+                                                <div>2-day: {p.prob2day}</div>
+                                                <div>7-day: {p.prob7day}</div>
+                                            </div>
+                                        </Tooltip>
+                                    </CircleMarker>
+                                ))}
+                            </MapContainer>
+                            {noaaDate && (
+                                <div className="mt-2 text-sm text-zinc-700 dark:text-zinc-200">
+                                    NOAA-Datenstand: {noaaDate}
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                    {/* 4. Ports map with conditions */}
+                    <div className="w-full max-w-4xl mb-8">
+                        <div className="mb-2 font-semibold text-lg text-center">All Ports</div>
+                        <PortsWorldMap />
+                    </div>
+                    {/* 5. Selected Ship (All Journeys) */}
+                    <div className="flex flex-col">
+                        <div className="mb-2 font-semibold text-lg text-center">Selected Ship (All Journeys)</div>
                         <label className="mb-2 font-semibold">
-                            Select Journey:
+                            <select
+                                className="ml-2 p-1 rounded border"
+                                value={selectedMmsi}
+                                onChange={(e) => setSelectedMmsi(e.target.value)}
+                            >
+                                {mmsis.map((mmsi) => (
+                                    <option key={mmsi} value={mmsi}>
+                                        {mmsi}
+                                    </option>
+                                ))}
+                            </select>
+                        </label>
+                        <div className="flex-1 min-h-[350px]">
+                            <WorldMap data={filteredDataMmsi} groupBy="journey_id" showJourneyInTooltip />
+                        </div>
+                    </div>
+                    {/* 6. Selected Journey */}
+                    <div className="flex flex-col">
+                        <div className="mb-2 font-semibold text-lg text-center">Selected Journey</div>
+                        <label className="mb-2 font-semibold">
                             <select
                                 className="ml-2 p-1 rounded border"
                                 value={selectedJourney}
@@ -139,43 +724,85 @@ export default function Home() {
                                 ))}
                             </select>
                         </label>
-                        {/* Map for selected journey */}
-                        <WorldMap data={filteredData} />
-                        {/* Table for selected journey */}
-                        {filteredData.length > 0 && (
-                            <div className="overflow-x-auto w-full mt-6">
-                                <table className="min-w-full border border-zinc-300 text-xs">
-                                    <thead>
-                                        <tr className="bg-zinc-100">
-                                            <th className="border px-2 py-1">Timestamp</th>
-                                            <th className="border px-2 py-1">Lat</th>
-                                            <th className="border px-2 py-1">Lon</th>
-                                            <th className="border px-2 py-1">UUID</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        {filteredData.map((entry, idx) => (
-                                            <tr key={entry.timestamp + idx}>
-                                                <td className="border px-2 py-1">{entry.timestamp}</td>
-                                                <td className="border px-2 py-1">{entry.lat}</td>
-                                                <td className="border px-2 py-1">{entry.lon}</td>
-                                                <td className="border px-2 py-1">{entry.uuid}</td>
-                                            </tr>
-                                        ))}
-                                    </tbody>
-                                </table>
+                        <div className="flex-1 min-h-[350px]">
+                            <WorldMap data={filteredData} />
+                        </div>
+                    </div>
+                </div>
+                {/* Weather alerts box */}
+                <div className="w-full max-w-4xl mb-8">
+                    <div className="mb-2 font-semibold text-lg text-center">Weather Alerts for All Ports</div>
+                    <div className="bg-white rounded shadow p-4 max-h-[400px] overflow-y-auto text-sm">
+                        {cityAlerts.length === 0 && <div>Loading alerts...</div>}
+                        {cityAlerts.map((city) => (
+                            <div key={city.name} className="mb-4">
+                                <div className="font-bold">
+                                    {city.name}{" "}
+                                    <span className="font-normal text-xs text-zinc-500">{city.localtime}</span>
+                                </div>
+                                {city.alerts.length === 0 ? (
+                                    <div className="text-zinc-500 italic">No alerts</div>
+                                ) : (
+                                    city.alerts.map((alert, idx) => (
+                                        <div key={idx} className="mb-2 border-l-4 pl-2 border-yellow-400">
+                                            <div className="font-semibold">{alert.headline}</div>
+                                            <div>
+                                                <span className="font-semibold">Severity:</span> {alert.severity} |{" "}
+                                                <span className="font-semibold">Urgency:</span> {alert.urgency} |{" "}
+                                                <span className="font-semibold">Certainty:</span> {alert.certainty} |{" "}
+                                                <span className="font-semibold">Event:</span> {alert.event}
+                                            </div>
+                                            <div className="text-xs text-zinc-700 whitespace-pre-line">
+                                                {alert.desc}
+                                            </div>
+                                            <div className="text-xs text-zinc-500">
+                                                <span>Effective: {alert.effective}</span> |{" "}
+                                                <span>Expires: {alert.expires}</span>
+                                            </div>
+                                        </div>
+                                    ))
+                                )}
                             </div>
-                        )}
+                        ))}
                     </div>
-                )}
-                {/* Map for all journeys */}
-                {showMap && (
-                    <div className="w-full max-w-4xl flex flex-col items-center mt-12">
-                        <div className="mb-2 font-semibold">All Journeys</div>
-                        <WorldMap data={mapData} showJourneyTooltip />
-                    </div>
-                )}
+                </div>
             </main>
+            {/* Buttons and predictor at the bottom */}
+            <footer className="flex flex-col items-center w-full mt-16">
+                <div className="flex items-center justify-between w-full gap-4">
+                    <button
+                        onClick={refreshBlockedPercentage}
+                        className="px-4 py-2 rounded bg-blue-600 text-white font-semibold hover:bg-blue-700 transition-colors"
+                        disabled={loading}
+                    >
+                        {loading ? "Refreshing..." : "Refresh"}
+                    </button>
+                    <button
+                        onClick={handleShipRequest}
+                        className="px-4 py-2 rounded bg-green-600 text-white font-semibold hover:bg-green-700 transition-colors"
+                        disabled={shipLoading}
+                    >
+                        {shipLoading ? "Loading Ships..." : "Get Ships"}
+                    </button>
+                    <button
+                        onClick={handlePortsRequest}
+                        className="px-4 py-2 rounded bg-purple-600 text-white font-semibold hover:bg-purple-700 transition-colors"
+                        disabled={portsLoading}
+                    >
+                        {portsLoading ? "Loading Ports..." : "Get All Ports"}
+                    </button>
+                </div>
+                <div className="flex flex-wrap justify-center gap-16 w-full mt-8">
+                    <RingChart value={percentage ?? 0} comment="Potentiell blockierte Fahrzeuge" />
+                </div>
+                {explanation && (
+                    <div className="mt-8 w-full max-w-2xl bg-zinc-100 dark:bg-zinc-800 rounded p-4 text-sm whitespace-pre-line">
+                        <strong>Erklärung:</strong>
+                        <br />
+                        {explanation}
+                    </div>
+                )}
+            </footer>
         </div>
     );
 }

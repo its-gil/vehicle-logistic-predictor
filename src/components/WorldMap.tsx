@@ -1,9 +1,9 @@
 "use client";
-import { MapContainer, TileLayer, CircleMarker, Tooltip } from "react-leaflet";
+import { MapContainer, TileLayer, Polyline, CircleMarker, Tooltip } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 
 type ShipPoint = {
-    uuid: string;
+    mmsi: string;
     journey_id: string;
     lat: number;
     lon: number;
@@ -12,62 +12,76 @@ type ShipPoint = {
 
 type Props = {
     data: ShipPoint[];
-    showJourneyTooltip?: boolean;
+    groupBy?: "journey_id" | "mmsi";
+    showJourneyInTooltip?: boolean;
+    showTooltips?: boolean;
 };
 
-export function WorldMap({ data, showJourneyTooltip = false }: Props) {
-    // Group points by journey_id
+export function WorldMap({ data, groupBy = "journey_id", showJourneyInTooltip = false, showTooltips = true }: Props) {
+    // Group points by journey_id (default) or mmsi
     const grouped = data.reduce<Record<string, ShipPoint[]>>((acc, point) => {
-        const journeyId = point.journey_id;
-        acc[journeyId] = acc[journeyId] || [];
-        acc[journeyId].push(point);
+        const key = groupBy === "mmsi" ? point.mmsi : point.journey_id;
+        acc[key] = acc[key] || [];
+        acc[key].push(point);
         return acc;
     }, {});
 
-    // Center on Atlantic
     const center: [number, number] = [30, -30];
-
-    // Color palette for journeys
-    const colors = ["red", "blue", "green", "orange", "purple"];
+    const colors = [
+        "rgba(255,0,0,0.5)",
+        "rgba(0,0,255,0.5)",
+        "rgba(0,200,0,0.5)",
+        "rgba(255,165,0,0.5)",
+        "rgba(128,0,128,0.5)",
+        "rgba(0,255,255,0.5)",
+        "rgba(255,0,255,0.5)",
+        "rgba(128,128,0,0.5)",
+        "rgba(0,128,128,0.5)",
+        "rgba(128,0,0,0.5)",
+    ];
 
     return (
-        <MapContainer center={center} zoom={2} style={{ height: "600px", width: "100%" }}>
+        <MapContainer center={center} zoom={2} style={{ height: "350px", width: "100%" }}>
             <TileLayer
                 url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
                 attribution="&copy; OpenStreetMap contributors"
             />
-            {Object.entries(grouped).map(([journeyId, points], idx) =>
-                points.map((p, i) => (
-                    <CircleMarker
-                        key={journeyId + i}
-                        center={[p.lat, p.lon]}
-                        radius={3}
-                        pathOptions={{
-                            color: colors[idx % colors.length],
-                            fillColor: colors[idx % colors.length],
-                            fillOpacity: 0.8,
-                        }}
-                    >
-                        <Tooltip direction="top" offset={[0, -5]} opacity={1} permanent={false}>
-                            {showJourneyTooltip ? (
-                                <div>
-                                    <div>Journey ID: {journeyId}</div>
+            {Object.entries(grouped).map(([key, points], idx) => (
+                <>
+                    <Polyline
+                        key={key}
+                        positions={points.map((p) => [p.lat, p.lon])}
+                        color={colors[idx % colors.length]}
+                        weight={2}
+                        opacity={0.7}
+                    />
+                    {points.map((p, i) => (
+                        <CircleMarker
+                            key={key + i}
+                            center={[p.lat, p.lon]}
+                            radius={3}
+                            pathOptions={{
+                                color: colors[idx % colors.length],
+                                fillColor: colors[idx % colors.length],
+                                fillOpacity: 0.8,
+                            }}
+                        >
+                            {showTooltips && (
+                                <Tooltip direction="top" offset={[0, -5]} opacity={1} permanent={false}>
                                     <div>
-                                        Lat: {p.lat}, Lon: {p.lon}
+                                        <div>Timestamp: {p.timestamp}</div>
+                                        <div>
+                                            Lat: {p.lat}, Lon: {p.lon}
+                                        </div>
+                                        <div>MMSI: {p.mmsi}</div>
+                                        {showJourneyInTooltip && <div>Journey: {p.journey_id}</div>}
                                     </div>
-                                    <div>Time: {p.timestamp}</div>
-                                </div>
-                            ) : (
-                                <div>
-                                    Lat: {p.lat}, Lon: {p.lon}
-                                    <br />
-                                    Time: {p.timestamp}
-                                </div>
+                                </Tooltip>
                             )}
-                        </Tooltip>
-                    </CircleMarker>
-                ))
-            )}
+                        </CircleMarker>
+                    ))}
+                </>
+            ))}
         </MapContainer>
     );
 }
