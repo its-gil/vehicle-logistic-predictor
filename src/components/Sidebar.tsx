@@ -1,6 +1,17 @@
 import React from "react";
 import Link from "next/link";
-import { LayoutDashboard, MessageCircle, Table2, Settings, LogOut } from "lucide-react";
+import {
+    LayoutDashboard,
+    MessageCircle,
+    Table2,
+    Settings,
+    LogOut,
+    History,
+    AlertTriangle,
+    CloudLightning,
+    Anchor,
+    Waves,
+} from "lucide-react";
 
 type SidebarProps = {
     isOpen: boolean;
@@ -32,6 +43,34 @@ export default function Sidebar({ isOpen, isMobile, navbarHeight = 64, onClose }
                             >
                                 <LayoutDashboard className="w-5 h-5" />
                                 Dashboard
+                            </Link>
+                            <Link
+                                href="/storms"
+                                className="flex items-center gap-2 text-zinc-700 dark:text-zinc-200 hover:text-blue-600 dark:hover:text-blue-400 font-medium transition-colors"
+                            >
+                                <CloudLightning className="w-5 h-5" />
+                                Storms
+                            </Link>
+                            <Link
+                                href="/marine_weather"
+                                className="flex items-center gap-2 text-zinc-700 dark:text-zinc-200 hover:text-blue-600 dark:hover:text-blue-400 font-medium transition-colors"
+                            >
+                                <Anchor className="w-5 h-5" />
+                                Weather
+                            </Link>
+                            <Link
+                                href="/ports"
+                                className="flex items-center gap-2 text-zinc-700 dark:text-zinc-200 hover:text-blue-600 dark:hover:text-blue-400 font-medium transition-colors"
+                            >
+                                <Anchor className="w-5 h-5" />
+                                Ports
+                            </Link>
+                            <Link
+                                href="/historical_routes"
+                                className="flex items-center gap-2 text-zinc-700 dark:text-zinc-200 hover:text-blue-600 dark:hover:text-blue-400 font-medium transition-colors"
+                            >
+                                <History className="w-5 h-5" />
+                                Historical Routes
                             </Link>
                             <Link
                                 href="/chat"
@@ -84,6 +123,35 @@ export default function Sidebar({ isOpen, isMobile, navbarHeight = 64, onClose }
                     >
                         <LayoutDashboard className="w-5 h-5" />
                         Dashboard
+                    </Link>
+                    <Link
+                        href="/storms"
+                        className="flex items-center gap-2 text-zinc-700 dark:text-zinc-200 hover:text-blue-600 dark:hover:text-blue-400 font-medium transition-colors"
+                    >
+                        <CloudLightning className="w-5 h-5" />
+                        Storms
+                    </Link>
+                    <Link
+                        href="/marine_weather"
+                        className="flex items-center gap-2 text-zinc-700 dark:text-zinc-200 hover:text-blue-600 dark:hover:text-blue-400 font-medium transition-colors"
+                    >
+                        {/* Use Lucide's Waves icon for marine weather */}
+                        <Waves className="w-5 h-5" />
+                        Marine Weather
+                    </Link>
+                    <Link
+                        href="/ports"
+                        className="flex items-center gap-2 text-zinc-700 dark:text-zinc-200 hover:text-blue-600 dark:hover:text-blue-400 font-medium transition-colors"
+                    >
+                        <Anchor className="w-5 h-5" />
+                        Ports
+                    </Link>
+                    <Link
+                        href="/historical_routes"
+                        className="flex items-center gap-2 text-zinc-700 dark:text-zinc-200 hover:text-blue-600 dark:hover:text-blue-400 font-medium transition-colors"
+                    >
+                        <History className="w-5 h-5" />
+                        Historical Routes
                     </Link>
                     <Link
                         href="/chat"

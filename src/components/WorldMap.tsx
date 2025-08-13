@@ -41,7 +41,7 @@ export function WorldMap({ data, groupBy = "journey_id", showJourneyInTooltip = 
     ];
 
     return (
-        <MapContainer center={center} zoom={2} style={{ height: "350px", width: "100%" }}>
+        <MapContainer center={center} zoom={2} style={{ height: "95%", width: "100%" }}>
             <TileLayer
                 url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
                 attribution="&copy; OpenStreetMap contributors"
@@ -59,7 +59,7 @@ export function WorldMap({ data, groupBy = "journey_id", showJourneyInTooltip = 
                         <CircleMarker
                             key={key + i}
                             center={[p.lat, p.lon]}
-                            radius={3}
+                            radius={2}
                             pathOptions={{
                                 color: colors[idx % colors.length],
                                 fillColor: colors[idx % colors.length],

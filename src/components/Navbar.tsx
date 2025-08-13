@@ -14,7 +14,10 @@ export default function Navbar({ onSidebarToggle, isSidebarOpen, isMobile }: Nav
     if (pathname === "/settings") pageTitle = "Settings";
     else if (pathname === "/chat") pageTitle = "Chat";
     else if (pathname === "/table") pageTitle = "Tables";
-    // Add more routes as needed
+    else if (pathname === "/storms") pageTitle = "Storms";
+    else if (pathname === "/marine_weather") pageTitle = "Marine Weather";
+    else if (pathname === "/ports") pageTitle = "Ports";
+    else if (pathname === "/historical_routes") pageTitle = "Historical Routes";
 
     return (
         <nav className="fixed top-0 left-0 right-0 h-16 flex items-center px-4 bg-white/80 dark:bg-zinc-900/80 border-b border-zinc-200 dark:border-zinc-800 backdrop-blur z-40">

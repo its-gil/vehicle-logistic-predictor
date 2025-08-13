@@ -4,7 +4,7 @@ import path from "path";
 import Papa from "papaparse";
 
 export async function GET() {
-    const filePath = path.join(process.cwd(), "public", "arrived_journeys_positions.csv");
+    const filePath = path.join(process.cwd(), "public", "interpolated_weather.csv");
     const csv = fs.readFileSync(filePath, "utf-8");
     const { data } = Papa.parse(csv, {
         header: true,
