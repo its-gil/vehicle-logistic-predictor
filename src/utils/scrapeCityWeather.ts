@@ -1,19 +1,45 @@
 import { cityPortList } from "./cityPortList";
+import fs from "fs";
+import path from "path";
 
 type CityWeatherResult = {
-    current: any;
-    hourly_2days: any;
-    hourly_7days: any;
-    daily_2days: any;
-    daily_7days: any;
+    now: any;
+    tomorrow: any;
+    week: any;
 };
+
+function getWeathercodeDescription(code: number | string): string {
+    try {
+        const jsonPath = path.join(process.cwd(), "public", "cities_weathercode_descriptions.json");
+        const raw = fs.readFileSync(jsonPath, "utf8");
+        const weathercodes = JSON.parse(raw);
+
+        const codeStr = String(code);
+        if (weathercodes[codeStr] && weathercodes[codeStr].day && weathercodes[codeStr].day.description) {
+            return weathercodes[codeStr].day.description;
+        }
+        // fallback: just return code
+        return String(code);
+    } catch {
+        return String(code);
+    }
+}
+
+function formatTimeString(timeStr: string): string {
+    // Example input: "2024-09-01T15:00"
+    if (!timeStr.includes("T")) return timeStr;
+    const [date, time] = timeStr.split("T");
+    const [year, month, day] = date.split("-");
+    const [hour, minute] = time.split(":");
+    return `${day}.${month}.${year} ${hour}:${minute}`;
+}
 
 export async function scrapeCityWeather(lat: number, lon: number): Promise<CityWeatherResult | null> {
     // Build the Open-Meteo API URL
     const url =
         `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}` +
-        `&current=temperature_2m,precipitation,weathercode,wind_speed_10m,wind_gusts_10m,wind_direction_10m,visibility,snowfall,snow_depth` +
-        `&hourly=temperature_2m,precipitation_probability,precipitation,weathercode,wind_speed_10m,wind_gusts_10m,wind_direction_10m,visibility,pressure_msl,snowfall,snow_depth` +
+        `&current=visibility,surface_pressure,temperature_2m,precipitation,weathercode,wind_speed_10m,wind_gusts_10m,wind_direction_10m,snowfall,snow_depth` +
+        `&hourly=visibility,surface_pressure` +
         `&daily=temperature_2m_max,temperature_2m_min,precipitation_probability_max,wind_speed_10m_max,wind_gusts_10m_max,wind_direction_10m_dominant,snowfall_sum,snow_depth_max` +
         `&timezone=auto`;
 
@@ -21,58 +47,76 @@ export async function scrapeCityWeather(lat: number, lon: number): Promise<CityW
     if (!res.ok) return null;
     const data = await res.json();
 
-    // Get current weather
-    const current = data.current || {};
+    // Get current weather (now), skip 'interval' key if present
+    let now: Record<string, any> = {};
+    if (data.current) {
+        const entries = Object.entries(data.current);
+        entries.forEach(([key, value], idx) => {
+            if (key === "interval") return; // skip interval
+            if (key === "weathercode") {
+                now[key] = getWeathercodeDescription(value as string | number);
+            } else if (key === "time" && typeof value === "string" && value.includes("T")) {
+                now[key] = formatTimeString(value);
+            } else {
+                now[key] = value;
+            }
+        });
+    }
 
-    // Get hourly: now + 2 days, now + 7 days
-    let hourly_2days = {};
-    let hourly_7days = {};
+    // Find indices for tomorrow and one week ahead in hourly data
+    let tomorrow = {};
+    let week = {};
     if (data.hourly && Array.isArray(data.hourly.time)) {
-        const now = new Date(data.hourly.time[0]);
-        const idx_2days = data.hourly.time.findIndex((t: string) => {
+        const nowDate = new Date(data.hourly.time[0]);
+        const idx_tomorrow = data.hourly.time.findIndex((t: string) => {
             const d = new Date(t);
-            return (d.getTime() - now.getTime()) / (1000 * 60 * 60 * 24) >= 2;
+            return (d.getTime() - nowDate.getTime()) / (1000 * 60 * 60 * 24) >= 1;
         });
-        const idx_7days = data.hourly.time.findIndex((t: string) => {
+        const idx_week = data.hourly.time.findIndex((t: string) => {
             const d = new Date(t);
-            return (d.getTime() - now.getTime()) / (1000 * 60 * 60 * 24) >= 6;
+            return (d.getTime() - nowDate.getTime()) / (1000 * 60 * 60 * 24) >= 6;
         });
 
-        if (idx_2days !== -1) {
-            hourly_2days = Object.fromEntries(
-                Object.entries(data.hourly).map(([k, arr]) => [k, Array.isArray(arr) ? arr[idx_2days] : undefined])
+        if (idx_tomorrow !== -1) {
+            tomorrow = Object.fromEntries(
+                Object.entries(data.hourly).map(([k, arr]) => [k, Array.isArray(arr) ? arr[idx_tomorrow] : undefined])
             );
         }
-        if (idx_7days !== -1) {
-            hourly_7days = Object.fromEntries(
-                Object.entries(data.hourly).map(([k, arr]) => [k, Array.isArray(arr) ? arr[idx_7days] : undefined])
+        if (idx_week !== -1) {
+            week = Object.fromEntries(
+                Object.entries(data.hourly).map(([k, arr]) => [k, Array.isArray(arr) ? arr[idx_week] : undefined])
             );
         }
     }
 
-    // Get daily: in 2 days, in 7 days
-    let daily_2days = {};
-    let daily_7days = {};
+    // Optionally, add daily values for tomorrow and week if available
     if (data.daily && Array.isArray(data.daily.time)) {
-        // Index 2 and 6 for 2 and 7 days ahead (assuming daily.time[0] is today)
-        if (data.daily.time.length > 2) {
-            daily_2days = Object.fromEntries(
-                Object.entries(data.daily).map(([k, arr]) => [k, Array.isArray(arr) ? arr[2] : undefined])
+        if (data.daily.time.length > 1) {
+            const daily_tomorrow = Object.fromEntries(
+                Object.entries(data.daily).map(([k, arr]) => [k, Array.isArray(arr) ? arr[1] : undefined])
             );
+            tomorrow = { ...tomorrow, ...daily_tomorrow };
         }
         if (data.daily.time.length > 6) {
-            daily_7days = Object.fromEntries(
+            const daily_week = Object.fromEntries(
                 Object.entries(data.daily).map(([k, arr]) => [k, Array.isArray(arr) ? arr[6] : undefined])
             );
+            week = { ...week, ...daily_week };
         }
+    }
+
+    // Replace weathercode in tomorrow and week with description if present
+    if ("weathercode" in tomorrow) {
+        tomorrow["weathercode"] = getWeathercodeDescription(tomorrow["weathercode"] as string | number);
+    }
+    if ("weathercode" in week) {
+        week["weathercode"] = getWeathercodeDescription(week["weathercode"] as string | number);
     }
 
     return {
-        current,
-        hourly_2days,
-        hourly_7days,
-        daily_2days,
-        daily_7days,
+        now,
+        tomorrow,
+        week,
     };
 }
 

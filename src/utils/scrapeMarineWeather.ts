@@ -1,12 +1,23 @@
 import fs from "fs";
 import path from "path";
+import { formatTimestamp } from "./formatTimestamp";
 
 type MarineWeatherResult = {
     lat: number;
     lon: number;
-    current: any;
-    hourly_2days: any;
-    hourly_7days: any;
+    wind_speed_10m: number | null;
+    wind_direction_10m: number | null;
+    wave_height: number | null;
+    wave_direction: number | null;
+    wave_period: number | null;
+    wind_wave_height: number | null;
+    wind_wave_direction: number | null;
+    wind_wave_period: number | null;
+    swell_wave_height: number | null;
+    swell_wave_direction: number | null;
+    swell_wave_period: number | null;
+    ocean_current_velocity: number | null;
+    ocean_current_direction: number | null;
 };
 
 export async function scrapeMarineWeather(): Promise<MarineWeatherResult[]> {
@@ -16,7 +27,6 @@ export async function scrapeMarineWeather(): Promise<MarineWeatherResult[]> {
     const header = lines[0].split(",");
     const latIdx = header.indexOf("lat_int");
     const lonIdx = header.indexOf("lon_int");
-    const countIdx = header.indexOf("count");
 
     const results: MarineWeatherResult[] = [];
 
@@ -24,98 +34,74 @@ export async function scrapeMarineWeather(): Promise<MarineWeatherResult[]> {
         const cols = lines[i].split(",");
         const lat = parseFloat(cols[latIdx]);
         const lon = parseFloat(cols[lonIdx]);
-        const count = parseInt(cols[countIdx], 10);
 
-        // Fetch marine weather for each point
-        const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&daily=wind_speed_10m_max,wind_direction_10m_dominant&hourly=wind_speed_10m,wind_direction_10m&current=wind_speed_10m,wind_direction_10m`;
+        const wind_url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=wind_speed_10m,wind_direction_10m`;
+        const marine_url = `https://marine-api.open-meteo.com/v1/marine?latitude=${lat}&longitude=${lon}&current=wave_height,wave_direction,wave_period,wind_wave_height,wind_wave_direction,wind_wave_period,swell_wave_height,swell_wave_direction,swell_wave_period,ocean_current_velocity,ocean_current_direction`;
+
         // eslint-disable-next-line no-await-in-loop
-        const res = await fetch(url);
-        if (!res.ok) continue;
+        const windRes = await fetch(wind_url);
         // eslint-disable-next-line no-await-in-loop
-        const data = await res.json();
+        const marineRes = await fetch(marine_url);
 
-        // Get current marine weather
-        const current = data.current || {};
+        if (!windRes.ok || !marineRes.ok) continue;
 
-        // Get hourly: now + 2 days, now + 7 days
-        let hourly_2days = {};
-        let hourly_7days = {};
-        if (data.hourly && Array.isArray(data.hourly.time)) {
-            const now = new Date(data.hourly.time[0]);
-            const idx_2days = data.hourly.time.findIndex((t: string) => {
-                const d = new Date(t);
-                return (d.getTime() - now.getTime()) / (1000 * 60 * 60 * 24) >= 2;
-            });
-            const idx_7days = data.hourly.time.findIndex((t: string) => {
-                const d = new Date(t);
-                return (d.getTime() - now.getTime()) / (1000 * 60 * 60 * 24) >= 6;
-            });
+        // eslint-disable-next-line no-await-in-loop
+        const windData = await windRes.json();
+        // eslint-disable-next-line no-await-in-loop
+        const marineData = await marineRes.json();
 
-            if (idx_2days !== -1) {
-                hourly_2days = Object.fromEntries(
-                    Object.entries(data.hourly).map(([k, arr]) => [k, Array.isArray(arr) ? arr[idx_2days] : undefined])
-                );
+        let wind_speed_10m: number | null = null;
+        let wind_direction_10m: number | null = null;
+
+        if (windData.current) {
+            if (typeof windData.current.wind_speed_10m === "number") {
+                wind_speed_10m = windData.current.wind_speed_10m;
             }
-            if (idx_7days !== -1) {
-                hourly_7days = Object.fromEntries(
-                    Object.entries(data.hourly).map(([k, arr]) => [k, Array.isArray(arr) ? arr[idx_7days] : undefined])
-                );
+            if (typeof windData.current.wind_direction_10m === "number") {
+                wind_direction_10m = windData.current.wind_direction_10m;
             }
         }
+
+        // Marine metrics
+        const marineCurrent = marineData.current || {};
+        const wave_height = typeof marineCurrent.wave_height === "number" ? marineCurrent.wave_height : null;
+        const wave_direction = typeof marineCurrent.wave_direction === "number" ? marineCurrent.wave_direction : null;
+        const wave_period = typeof marineCurrent.wave_period === "number" ? marineCurrent.wave_period : null;
+        const wind_wave_height =
+            typeof marineCurrent.wind_wave_height === "number" ? marineCurrent.wind_wave_height : null;
+        const wind_wave_direction =
+            typeof marineCurrent.wind_wave_direction === "number" ? marineCurrent.wind_wave_direction : null;
+        const wind_wave_period =
+            typeof marineCurrent.wind_wave_period === "number" ? marineCurrent.wind_wave_period : null;
+        const swell_wave_height =
+            typeof marineCurrent.swell_wave_height === "number" ? marineCurrent.swell_wave_height : null;
+        const swell_wave_direction =
+            typeof marineCurrent.swell_wave_direction === "number" ? marineCurrent.swell_wave_direction : null;
+        const swell_wave_period =
+            typeof marineCurrent.swell_wave_period === "number" ? marineCurrent.swell_wave_period : null;
+        const ocean_current_velocity =
+            typeof marineCurrent.ocean_current_velocity === "number" ? marineCurrent.ocean_current_velocity : null;
+        const ocean_current_direction =
+            typeof marineCurrent.ocean_current_direction === "number" ? marineCurrent.ocean_current_direction : null;
 
         results.push({
             lat,
             lon,
-            current,
-            hourly_2days,
-            hourly_7days,
+            wind_speed_10m,
+            wind_direction_10m,
+            wave_height,
+            wave_direction,
+            wave_period,
+            wind_wave_height,
+            wind_wave_direction,
+            wind_wave_period,
+            swell_wave_height,
+            swell_wave_direction,
+            swell_wave_period,
+            ocean_current_velocity,
+            ocean_current_direction,
         });
     }
 
     return results;
-}
-
-export async function scrapeMarineWeatherByLatLon(lat: number, lon: number) {
-    const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&daily=wind_speed_10m_max,wind_direction_10m_dominant&hourly=wind_speed_10m,wind_direction_10m&current=wind_speed_10m,wind_direction_10m`;
-    const res = await fetch(url);
-    if (!res.ok) return null;
-    const data = await res.json();
-    console.log("marineWeather", data);
-
-    // Get current marine weather
-    const current = data.current || {};
-
-    // Get hourly: now + 2 days, now + 7 days
-    let hourly_2days = {};
-    let hourly_7days = {};
-    if (data.hourly && Array.isArray(data.hourly.time)) {
-        const now = new Date(data.hourly.time[0]);
-        const idx_2days = data.hourly.time.findIndex((t: string) => {
-            const d = new Date(t);
-            return (d.getTime() - now.getTime()) / (1000 * 60 * 60 * 24) >= 2;
-        });
-        const idx_7days = data.hourly.time.findIndex((t: string) => {
-            const d = new Date(t);
-            return (d.getTime() - now.getTime()) / (1000 * 60 * 60 * 24) >= 6;
-        });
-
-        if (idx_2days !== -1) {
-            hourly_2days = Object.fromEntries(
-                Object.entries(data.hourly).map(([k, arr]) => [k, Array.isArray(arr) ? arr[idx_2days] : undefined])
-            );
-        }
-        if (idx_7days !== -1) {
-            hourly_7days = Object.fromEntries(
-                Object.entries(data.hourly).map(([k, arr]) => [k, Array.isArray(arr) ? arr[idx_7days] : undefined])
-            );
-        }
-    }
-
-    return {
-        lat,
-        lon,
-        current,
-        hourly_2days,
-        hourly_7days,
-    };
 }

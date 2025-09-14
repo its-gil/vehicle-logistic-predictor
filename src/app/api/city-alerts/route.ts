@@ -1,6 +1,14 @@
 import { scrapeCityAlerts } from "@/utils/scrapeCityAlerts";
 
-export async function GET() {
-    const data = await scrapeCityAlerts();
-    return Response.json(data);
+export async function GET(request: Request) {
+    const { searchParams } = new URL(request.url);
+    const lat = searchParams.get("lat");
+    const lon = searchParams.get("lon");
+
+    if (!lat || !lon) {
+        return new Response(JSON.stringify({ error: "Missing required parameters: lat, lon" }), { status: 400 });
+    }
+
+    const result = await scrapeCityAlerts(Number(lat), Number(lon));
+    return new Response(JSON.stringify(result), { status: 200 });
 }
