@@ -42,7 +42,10 @@ export default function Navbar({ onSidebarToggle, isSidebarOpen, isMobile }: Nav
                     <line x1="4" y1="18" x2="20" y2="18" />
                 </svg>
             </button>
-            <div className="text-lg font-semibold text-zinc-900 dark:text-zinc-100 flex-1">{pageTitle}</div>
+            <div className="flex items-center">
+                <img src="/logo_done.png" alt="Logo" className="h-8 mr-2" />
+            </div>
+            <div className="text-lg font-semibold text-zinc-900 dark:text-zinc-100 flex-1">/ {pageTitle}</div>
             <button className="cursor-pointer">
                 <User className="w-7 h-7 text-zinc-700 dark:text-zinc-200 ml-auto" />
             </button>
