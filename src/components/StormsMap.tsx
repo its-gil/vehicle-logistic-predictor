@@ -4,7 +4,7 @@ import { MapContainer, TileLayer, Polyline, CircleMarker, Tooltip, Polygon } fro
 import "leaflet/dist/leaflet.css";
 import LastUpdateOverlay from "./LastUpdateOverlay";
 import { StormFilterOverlay } from "./StormFilterOverlay";
-import { HeatmapLayer } from "react-leaflet-heatmap-layer-v3";
+import { HeatmapLayer } from "./HeatmapLayer";
 import { WorldMap } from "./WorldMap";
 import LoadingOverlay from "./LoadingOverlay";
 import { formatTimestamp } from "@/utils/formatTimestamp";
@@ -120,14 +120,15 @@ export function StormsMap(props: Props) {
                 {mapMode === "cyclone_disturbances" && !stormsLoading && (
                     <>
                         <HeatmapLayer
-                            points={heatmapPoints ?? []}
-                            longitudeExtractor={(p: { lng: number }) => p.lng}
-                            latitudeExtractor={(p: { lat: number }) => p.lat}
-                            intensityExtractor={(p: { intensity: number }) => p.intensity}
+                            points={(heatmapPoints ?? []).map((p: { lat: number; lng: number; intensity?: number }) => [
+                                p.lat,
+                                p.lng,
+                                p.intensity ?? 1,
+                            ])}
                             max={95}
                             radius={5}
                             blur={8}
-                            opacity={0.3}
+                            opacity={0.8}
                         />
 
                         {regions?.map((region) => (
