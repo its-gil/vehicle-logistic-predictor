@@ -32,7 +32,7 @@ function formatTimeString(timeStr: string): string {
     return `${day}.${month}.${year} ${hour}:${minute}`;
 }
 
-export async function scrapeCityWeather(lat: number, lon: number): Promise<CityWeatherResult | null> {
+export async function getCityWeather(lat: number, lon: number): Promise<CityWeatherResult | null> {
     const url =
         `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}` +
         `&current=visibility,surface_pressure,temperature_2m,precipitation,weathercode,wind_speed_10m,wind_gusts_10m,wind_direction_10m,snowfall,snow_depth` +

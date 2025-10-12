@@ -13,7 +13,7 @@ export type NOAAStorm = {
     lastUpdate: string;
 };
 
-export async function scrapeNOAAActiveStorms(): Promise<NOAAStorm[]> {
+export async function getActiveStorms(): Promise<NOAAStorm[]> {
     const url = "https://www.nhc.noaa.gov/CurrentStorms.json";
     const res = await fetch(url);
     if (!res.ok) throw new Error(`Failed to fetch NOAA storms: ${res.status}`);

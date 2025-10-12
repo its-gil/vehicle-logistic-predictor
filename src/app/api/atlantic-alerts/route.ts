@@ -1,6 +1,6 @@
-import { scrapeAtlanticAlerts } from "@/utils/scrapeAtlanticAlerts";
+import { getAtlanticAlerts } from "@/utils/getAtlanticAlerts";
 
 export async function GET() {
-    const data = await scrapeAtlanticAlerts();
+    const data = await getAtlanticAlerts();
     return Response.json(data);
 }

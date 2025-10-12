@@ -3,24 +3,7 @@ import "leaflet/dist/leaflet.css";
 import { WorldMap } from "./WorldMap";
 import LoadingOverlay from "./LoadingOverlay";
 import LastUpdateOverlay from "./LastUpdateOverlay";
-
-type MarineWeatherResult = {
-    lat: number;
-    lon: number;
-    wind_speed_10m: number | null;
-    wind_direction_10m: number | null;
-    wave_height: number | null;
-    wave_direction: number | null;
-    wave_period: number | null;
-    wind_wave_height: number | null;
-    wind_wave_direction: number | null;
-    wind_wave_period: number | null;
-    swell_wave_height: number | null;
-    swell_wave_direction: number | null;
-    swell_wave_period: number | null;
-    ocean_current_velocity: number | null;
-    ocean_current_direction: number | null;
-};
+import { MarineWeatherResult } from "@/types";
 
 type Props = {
     data: MarineWeatherResult[];

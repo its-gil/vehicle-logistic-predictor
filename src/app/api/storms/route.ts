@@ -1,9 +1,9 @@
 import { NextRequest } from "next/server";
-import { scrapeNOAAActiveStorms } from "@/utils/scrapeNOAAActiveStorms";
+import { getActiveStorms } from "@/utils/getActiveStorms";
 
 export async function GET(req: NextRequest) {
     try {
-        const storms = await scrapeNOAAActiveStorms();
+        const storms = await getActiveStorms();
         return Response.json(storms);
     } catch (e) {
         return Response.json({ error: "Failed to fetch storms" }, { status: 500 });

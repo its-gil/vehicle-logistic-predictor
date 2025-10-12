@@ -25,7 +25,7 @@ function formatDate(dateStr: string): string {
     return `${day}.${month}.${year} ${hour}:${minute}`;
 }
 
-export async function scrapeCityAlerts(lat: number, lon: number): Promise<CityAlertResult> {
+export async function getCityAlerts(lat: number, lon: number): Promise<CityAlertResult> {
     try {
         const url = `https://api.weatherapi.com/v1/forecast.json?key=${WEATHERAPI_ALERTS_API_KEY}&q=${lat},${lon}&days=1&alerts=yes`;
         const res = await fetch(url);

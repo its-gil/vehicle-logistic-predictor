@@ -3,13 +3,7 @@ import { useEffect, useState } from "react";
 import { MapContainer, TileLayer, Polyline, CircleMarker, Tooltip, Polygon } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import { WorldMap } from "./WorldMap";
-
-type Port = {
-    name: string;
-    lat: number;
-    lon: number;
-    [key: string]: any;
-};
+import { Port } from "@/types";
 
 type Props = {
     ports: Port[];

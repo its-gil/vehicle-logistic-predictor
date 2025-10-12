@@ -5,7 +5,7 @@ export type NOAARegionFeature = {
     prob7day: string;
 };
 
-export async function scrapeNOAATropicalRegions(): Promise<NOAARegionFeature[]> {
+export async function getPotentialRegions(): Promise<NOAARegionFeature[]> {
     const url =
         "https://mapservices.weather.noaa.gov/tropical/rest/services/tropical/NHC_tropical_weather_summary/MapServer/3/query?where=1%3D1&outFields=*&returnGeometry=true&f=geojson";
     const res = await fetch(url);

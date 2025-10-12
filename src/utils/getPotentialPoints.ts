@@ -9,7 +9,7 @@ export type NOAAFeature = {
     idp_source?: string;
 };
 
-export async function scrapeNOAATropicalPoints(): Promise<NOAAFeature[]> {
+export async function getPotentialPoints(): Promise<NOAAFeature[]> {
     const url =
         "https://mapservices.weather.noaa.gov/tropical/rest/services/tropical/NHC_tropical_weather_summary/MapServer/2/query?where=1%3D1&outFields=*&returnGeometry=true&f=geojson";
     const res = await fetch(url);

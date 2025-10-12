@@ -1,4 +1,4 @@
-import { scrapeCityWeather } from "@/utils/scrapeCityWeather";
+import { getCityWeather } from "@/utils/getCityWeather";
 
 export async function GET(req: Request) {
     const { searchParams } = new URL(req.url);
@@ -7,6 +7,6 @@ export async function GET(req: Request) {
     if (isNaN(lat) || isNaN(lon)) {
         return new Response(JSON.stringify({ error: "Invalid coordinates" }), { status: 400 });
     }
-    const data = await scrapeCityWeather(lat, lon);
+    const data = await getCityWeather(lat, lon);
     return Response.json(data);
 }

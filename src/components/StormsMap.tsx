@@ -8,40 +8,9 @@ import { HeatmapLayer } from "./HeatmapLayer";
 import { WorldMap } from "./WorldMap";
 import LoadingOverlay from "./LoadingOverlay";
 import { formatTimestamp } from "@/utils/formatTimestamp";
+import { StormMapMode, StormPoint, NOAAFeature, NOAAArrowFeature, NOAARegionFeature } from "@/types";
 
-type StormMapMode = "active_storms" | "cyclone_disturbances";
-
-type StormPoint = {
-    id?: string;
-    lat: number;
-    lon: number;
-    latitudeNumeric?: number;
-    longitudeNumeric?: number;
-    name?: string;
-    classification?: string;
-    intensity?: number;
-    movementSpeed?: number;
-    movementDir?: number;
-    lastUpdate?: string;
-    system_status?: string;
-    system_status_desc?: string;
-    storm_id?: string;
-    storm_name?: string;
-    datetime?: string;
-    max_sustained_wind?: number | null;
-};
-
-type NOAAFeature = { id: string; lat: number; lon: number; prob2day: string; prob7day: string };
-type NOAAArrowFeature = {
-    id: string;
-    coordinates: [number, number][];
-    basin: string;
-    prob2day: string;
-    prob7day: string;
-};
-type NOAARegionFeature = { id: string; coordinates: [number, number][]; prob2day: string; prob7day: string };
-
-type Props = {
+type StormMapProps = {
     mapMode?: StormMapMode;
     onMapModeChange?: (mode: StormMapMode) => void;
     storms?: StormPoint[];
@@ -58,7 +27,7 @@ function getColor(prob2day: string, prob7day: string) {
     return p2 > 60 || p7 > 60 ? "red" : "yellow";
 }
 
-export function StormsMap(props: Props) {
+export function StormsMap(props: StormMapProps) {
     const { mapMode, onMapModeChange, storms, heatmapPoints, noaaPoints, arrows, regions, stormsLoading } = props;
 
     return (

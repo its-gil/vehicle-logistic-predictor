@@ -7,8 +7,7 @@ import { useShipsPositions } from "@/providers/ShipsPositionsProvider";
 import React from "react";
 import LoadingOverlay from "./LoadingOverlay";
 import { CloudLightning } from "lucide-react";
-
-type ShipPoint = { mmsi: string; journey_id: string; lat: number; lon: number; date: string };
+import { ShipPoint } from "@/types";
 
 type Props = {
     filterType: "journey_id" | "mmsi";

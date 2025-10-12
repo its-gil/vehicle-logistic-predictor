@@ -1,11 +1,5 @@
 import React, { createContext, useContext, useEffect, useState } from "react";
-
-type ShipPoint = { mmsi: string; journey_id: string; lat: number; lon: number; date: string };
-
-type ShipsPositionsContextType = {
-    shipsPositions: ShipPoint[] | null;
-    loading: boolean;
-};
+import { ShipPoint, ShipsPositionsContextType } from "@/types";
 
 const ShipsPositionsContext = createContext<ShipsPositionsContextType>({
     shipsPositions: null,

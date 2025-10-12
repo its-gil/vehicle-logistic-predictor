@@ -1,19 +1,15 @@
 "use client";
 import { useState, useEffect } from "react";
 import dynamic from "next/dynamic";
-import { scrapeNOAATropicalPoints, NOAAFeature } from "@/utils/scrapeNOAATropicalPoints";
-import { scrapeNOAATropicalArrows, NOAAArrowFeature } from "@/utils/scrapeNOAATropicalArrows";
-import { scrapeNOAATropicalRegions, NOAARegionFeature } from "@/utils/scrapeNOAATropicalRegions";
+import { StormMapMode } from "@/types";
 
 const StormsMap = dynamic(() => import("@/components/StormsMap").then((mod) => mod.StormsMap), { ssr: false });
 
-type StormMapMode = "active_storms" | "cyclone_disturbances";
-
 export default function StormsPage() {
     const [mapMode, setMapMode] = useState<StormMapMode>("active_storms");
-    const [noaaPoints, setNoaaPoints] = useState<NOAAFeature[]>([]);
-    const [arrows, setArrows] = useState<NOAAArrowFeature[]>([]);
-    const [regions, setRegions] = useState<NOAARegionFeature[]>([]);
+    const [noaaPoints, setNoaaPoints] = useState([]);
+    const [arrows, setArrows] = useState([]);
+    const [regions, setRegions] = useState([]);
     const [atlanticStorms, setAtlanticStorms] = useState<any[] | null>(null);
     const [heatmapPoints, setHeatmapPoints] = useState<any[]>([]);
     const [stormsLoading, setStormsLoading] = useState(true);
@@ -21,16 +17,21 @@ export default function StormsPage() {
     const [heatmapFetched, setHeatmapFetched] = useState(false);
 
     useEffect(() => {
-        scrapeNOAATropicalPoints().then(setNoaaPoints).catch(console.error);
-        scrapeNOAATropicalArrows().then(setArrows).catch(console.error);
-        scrapeNOAATropicalRegions().then(setRegions).catch(console.error);
-    }, []);
-
-    useEffect(() => {
         fetch("/api/storms")
             .then((res) => res.json())
             .then(setAtlanticStorms)
             .finally(() => setStormsFetched(true));
+    }, []);
+
+    useEffect(() => {
+        fetch("/api/potential-storms")
+            .then((res) => res.json())
+            .then((data) => {
+                setNoaaPoints(data.points || []);
+                setArrows(data.arrows || []);
+                setRegions(data.regions || []);
+            })
+            .catch(console.error);
     }, []);
 
     useEffect(() => {

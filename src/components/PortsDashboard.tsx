@@ -2,33 +2,7 @@
 import { useEffect, useState } from "react";
 import "leaflet/dist/leaflet.css";
 import LoadingOverlay from "./LoadingOverlay";
-
-type Port = {
-    name: string;
-    lat: number;
-    lon: number;
-    [key: string]: any;
-};
-
-type CityWeatherResult = {
-    now: Record<string, any>;
-    tomorrow: Record<string, any>;
-    week: Record<string, any>;
-};
-
-type CityAlerts = {
-    localtime: string;
-    alerts: {
-        headline: string;
-        severity: string;
-        urgency: string;
-        certainty: string;
-        event: string;
-        desc: string;
-        effective: string;
-        expires: string;
-    }[];
-};
+import { Port, CityWeatherResult, CityAlerts } from "@/types";
 
 type Props = {
     port: Port | null;

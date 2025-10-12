@@ -22,7 +22,7 @@ export type AtlanticAlert = {
     web: string;
 };
 
-export async function scrapeAtlanticAlerts(): Promise<AtlanticAlert[]> {
+export async function getAtlanticAlerts(): Promise<AtlanticAlert[]> {
     const res = await fetch(atlanticAlertsUrl);
     if (!res.ok) return [];
     const data = await res.json();

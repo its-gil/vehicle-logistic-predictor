@@ -3,35 +3,9 @@ import { useState, useEffect } from "react";
 import dynamic from "next/dynamic";
 import { cityPortList } from "@/utils/cityPortList";
 import { PortsDashboard } from "@/components/PortsDashboard";
+import { Port, CityWeatherResult, CityAlerts } from "@/types";
 
 const PortsMap = dynamic(() => import("@/components/PortsMap").then((mod) => mod.PortsMap), { ssr: false });
-
-type Port = {
-    name: string;
-    lat: number;
-    lon: number;
-    [key: string]: any;
-};
-
-type CityWeatherResult = {
-    now: Record<string, any>;
-    tomorrow: Record<string, any>;
-    week: Record<string, any>;
-};
-
-type CityAlerts = {
-    localtime: string;
-    alerts: {
-        headline: string;
-        severity: string;
-        urgency: string;
-        certainty: string;
-        event: string;
-        desc: string;
-        effective: string;
-        expires: string;
-    }[];
-};
 
 export default function PortsPage() {
     const [selectedPort, setSelectedPort] = useState<Port | null>(

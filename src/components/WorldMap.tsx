@@ -3,8 +3,7 @@ import { MapContainer, TileLayer, Polyline } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import { useShipsPositions } from "@/providers/ShipsPositionsProvider";
 import LoadingOverlay from "./LoadingOverlay";
-
-type ShipPoint = { mmsi: string; journey_id: string; lat: number; lon: number; date: string };
+import { ShipPoint } from "@/types";
 
 type Props = {
     center?: [number, number];

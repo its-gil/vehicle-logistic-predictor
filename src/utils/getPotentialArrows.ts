@@ -6,7 +6,7 @@ export type NOAAArrowFeature = {
     prob7day: string;
 };
 
-export async function scrapeNOAATropicalArrows(): Promise<NOAAArrowFeature[]> {
+export async function getPotentialArrows(): Promise<NOAAArrowFeature[]> {
     const url =
         "https://mapservices.weather.noaa.gov/tropical/rest/services/tropical/NHC_tropical_weather_summary/MapServer/33/query?where=1%3D1&outFields=*&returnGeometry=true&f=geojson";
     const res = await fetch(url);
