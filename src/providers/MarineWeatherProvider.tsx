@@ -2,6 +2,7 @@ import React, { createContext, useContext, useEffect, useState } from "react";
 import fs from "fs";
 import path from "path";
 import { formatTimestamp } from "@/utils/formatTimestamp";
+import { getMarineWeather } from "@/utils/getMarineWeather";
 
 type MarineWeatherResult = {
     lat: number;
@@ -39,24 +40,41 @@ export function MarineWeatherProvider({ children }: { children: React.ReactNode 
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        async function fetchMarineWeather() {
+        async function fetchMarineWeatherForRepeatingCoordinates() {
             setLoading(true);
             try {
-                const res = await fetch(`/api/marine-weather`);
+                // Read the CSV file
+                const csvPath = path.join(process.cwd(), "public", "repeating_coordinates.csv");
+                const csvText = fs.readFileSync(csvPath, "utf8");
+                const lines = csvText.trim().split("\n");
+                const header = lines[0].split(",");
+                const latIdx = header.indexOf("lat");
+                const lonIdx = header.indexOf("lon");
 
-                if (!res.ok) throw new Error("Failed to fetch marine weather data");
+                const results: MarineWeatherResult[] = [];
 
-                const data = await res.json();
+                for (let i = 1; i < lines.length; i++) {
+                    const cols = lines[i].split(",");
+                    const lat = parseFloat(cols[latIdx]);
+                    const lon = parseFloat(cols[lonIdx]);
 
-                if (Array.isArray(data)) {
-                    setMarineWeather(data);
+                    // Fetch marine weather for each coordinate
+                    // eslint-disable-next-line no-await-in-loop
+                    const weather = await getMarineWeather(lat, lon);
+                    if (weather) {
+                        results.push(weather);
+                    }
                 }
+
+                setMarineWeather(results);
+                setTimestamp(formatTimestamp(new Date()));
             } catch (err) {
-                console.log("Error fetching marine weather data:", err);
+                console.error("Error fetching marine weather data:", err);
             }
             setLoading(false);
         }
-        fetchMarineWeather();
+
+        fetchMarineWeatherForRepeatingCoordinates();
     }, []);
 
     return (

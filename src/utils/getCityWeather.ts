@@ -1,4 +1,3 @@
-import { cityPortList } from "./cityPortList";
 import fs from "fs";
 import path from "path";
 
@@ -18,7 +17,6 @@ function getWeathercodeDescription(code: number | string): string {
         if (weathercodes[codeStr] && weathercodes[codeStr].day && weathercodes[codeStr].day.description) {
             return weathercodes[codeStr].day.description;
         }
-        // fallback: just return code
         return String(code);
     } catch {
         return String(code);
@@ -35,7 +33,6 @@ function formatTimeString(timeStr: string): string {
 }
 
 export async function scrapeCityWeather(lat: number, lon: number): Promise<CityWeatherResult | null> {
-    // Build the Open-Meteo API URL
     const url =
         `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}` +
         `&current=visibility,surface_pressure,temperature_2m,precipitation,weathercode,wind_speed_10m,wind_gusts_10m,wind_direction_10m,snowfall,snow_depth` +
@@ -118,18 +115,4 @@ export async function scrapeCityWeather(lat: number, lon: number): Promise<CityW
         tomorrow,
         week,
     };
-}
-
-// Example: scrape weather for all cities
-export async function scrapeAllCitiesWeather() {
-    return Promise.all(
-        cityPortList.map(({ name, lat, lon }) =>
-            scrapeCityWeather(lat, lon).then((weather) => ({
-                name,
-                lat,
-                lon,
-                weather,
-            }))
-        )
-    );
 }

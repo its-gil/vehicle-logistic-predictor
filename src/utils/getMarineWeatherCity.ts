@@ -1,12 +1,10 @@
-import { cityPortList } from "./cityPortList";
-
 type MarineWeatherResult = {
     current: any;
     hourly_2days: any;
     hourly_7days: any;
 };
 
-export async function scrapeMarineWeatherCities(lat: number, lon: number): Promise<MarineWeatherResult | null> {
+export async function getMarineWeatherCities(lat: number, lon: number): Promise<MarineWeatherResult | null> {
     const url =
         `https://marine-api.open-meteo.com/v1/marine?latitude=${lat}&longitude=${lon}` +
         `&hourly=wave_height,wave_direction,wave_period,wind_wave_height,wind_wave_direction,wind_wave_period,swell_wave_height,swell_wave_direction,swell_wave_period,ocean_current_velocity,ocean_current_direction` +
@@ -51,18 +49,4 @@ export async function scrapeMarineWeatherCities(lat: number, lon: number): Promi
         hourly_2days,
         hourly_7days,
     };
-}
-
-// Example: scrape marine weather for all cities
-export async function scrapeAllCitiesMarineWeather() {
-    return Promise.all(
-        cityPortList.map(({ name, lat, lon }) =>
-            scrapeMarineWeatherCities(lat, lon).then((weather) => ({
-                name,
-                lat,
-                lon,
-                weather,
-            }))
-        )
-    );
 }
