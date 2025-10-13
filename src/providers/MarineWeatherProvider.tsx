@@ -1,61 +1,49 @@
 import React, { createContext, useContext, useEffect, useState } from "react";
-import fs from "fs";
-import path from "path";
-import { formatTimestamp } from "@/utils/formatTimestamp";
 import { getMarineWeather } from "@/utils/getMarineWeather";
 import { MarineWeatherResult, MarineWeatherContextType } from "@/types";
 
 const MarineWeatherContext = createContext<MarineWeatherContextType>({
     marineWeather: [],
-    timestamp: formatTimestamp(new Date()),
+    timestamp: "",
     loading: true,
 });
 
 export function MarineWeatherProvider({ children }: { children: React.ReactNode }) {
     const [marineWeather, setMarineWeather] = useState<MarineWeatherResult[]>([]);
-    const [timestamp, setTimestamp] = useState(formatTimestamp(new Date()));
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        async function fetchMarineWeatherForRepeatingCoordinates() {
+        async function fetchMarineWeatherGeneral() {
             setLoading(true);
             try {
-                // Read the CSV file
-                const csvPath = path.join(process.cwd(), "public", "repeating_coordinates.csv");
-                const csvText = fs.readFileSync(csvPath, "utf8");
-                const lines = csvText.trim().split("\n");
-                const header = lines[0].split(",");
-                const latIdx = header.indexOf("lat");
-                const lonIdx = header.indexOf("lon");
+                const res = await fetch("/api/repeating-coordinates");
+                const data = await res.json();
 
-                const results: MarineWeatherResult[] = [];
-
-                for (let i = 1; i < lines.length; i++) {
-                    const cols = lines[i].split(",");
-                    const lat = parseFloat(cols[latIdx]);
-                    const lon = parseFloat(cols[lonIdx]);
+                if (data.coordinates) {
+                    const results: MarineWeatherResult[] = [];
 
                     // Fetch marine weather for each coordinate
-                    // eslint-disable-next-line no-await-in-loop
-                    const weather = await getMarineWeather(lat, lon);
-                    if (weather) {
-                        results.push(weather);
+                    for (const { lat, lon } of data.coordinates) {
+                        // eslint-disable-next-line no-await-in-loop
+                        const weather = await getMarineWeather(lat, lon);
+                        if (weather) {
+                            results.push(weather);
+                        }
                     }
-                }
 
-                setMarineWeather(results);
-                setTimestamp(formatTimestamp(new Date()));
-            } catch (err) {
-                console.error("Error fetching marine weather data:", err);
+                    setMarineWeather(results);
+                }
+            } catch (error) {
+                console.error("Error fetching marine weather data:", error);
             }
             setLoading(false);
         }
 
-        fetchMarineWeatherForRepeatingCoordinates();
+        fetchMarineWeatherGeneral();
     }, []);
 
     return (
-        <MarineWeatherContext.Provider value={{ marineWeather, timestamp, loading }}>
+        <MarineWeatherContext.Provider value={{ marineWeather, timestamp: new Date().toISOString(), loading }}>
             {children}
         </MarineWeatherContext.Provider>
     );
