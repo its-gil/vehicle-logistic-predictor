@@ -1,24 +1,4 @@
-import fs from "fs";
-import path from "path";
-import { formatTimestamp } from "./formatTimestamp";
-
-type MarineWeatherResult = {
-    lat: number;
-    lon: number;
-    wind_speed_10m: number | null;
-    wind_direction_10m: number | null;
-    wave_height: number | null;
-    wave_direction: number | null;
-    wave_period: number | null;
-    wind_wave_height: number | null;
-    wind_wave_direction: number | null;
-    wind_wave_period: number | null;
-    swell_wave_height: number | null;
-    swell_wave_direction: number | null;
-    swell_wave_period: number | null;
-    ocean_current_velocity: number | null;
-    ocean_current_direction: number | null;
-};
+import { MarineWeatherResult } from "@/types/";
 
 export async function getMarineWeather(lat: number, lon: number): Promise<MarineWeatherResult | null> {
     const wind_url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=wind_speed_10m,wind_direction_10m`;
