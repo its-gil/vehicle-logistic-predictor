@@ -11,7 +11,7 @@ type Alert = {
     effective: string;
     expires: string;
 };
-type CityAlertResult = {
+export type CityAlertResult = {
     localtime: string;
     alerts: Alert[];
 };
