@@ -4,6 +4,7 @@ import { WorldMap } from "./WorldMap";
 import LoadingOverlay from "./LoadingOverlay";
 import LastUpdateOverlay from "./LastUpdateOverlay";
 import { MarineWeatherResult } from "@/types";
+import { getArrowCoords } from "@/utils/drawWindArrows";
 
 type Props = {
     data: MarineWeatherResult[];
@@ -18,7 +19,7 @@ export function MarineWeatherMap(props: Props) {
 
     return (
         <div className="relative w-full h-full">
-            <WorldMap center={[40, -30]} zoom={4}>
+            <WorldMap center={[40, -30]} zoom={3}>
                 {loading && <LoadingOverlay />}
                 <LastUpdateOverlay timestamp={timestamp} />
                 <MarineWeatherArrows data={data} />
@@ -52,39 +53,4 @@ function MarineWeatherArrows({ data }: { data: MarineWeatherResult[] }) {
             })}
         </>
     );
-}
-
-// Helper to draw wind arrows with arrowhead
-function getArrowCoords(lat: number, lon: number, direction: number, speed: number): [number, number][][] {
-    const length = Math.min(2 + speed * 0.5, 10);
-    const rad = (direction * Math.PI) / 180;
-    const lat2 = lat + length * Math.cos(rad) * 0.1;
-    const lon2 = lon + length * Math.sin(rad) * 0.1;
-
-    const arrowHeadLength = 0.4;
-    const arrowAngle = 30 * (Math.PI / 180);
-
-    const leftRad = rad + arrowAngle;
-    const rightRad = rad - arrowAngle;
-
-    const leftLat = lat2 - arrowHeadLength * Math.cos(leftRad);
-    const leftLon = lon2 - arrowHeadLength * Math.sin(leftRad);
-
-    const rightLat = lat2 - arrowHeadLength * Math.cos(rightRad);
-    const rightLon = lon2 - arrowHeadLength * Math.sin(rightRad);
-
-    return [
-        [
-            [lat, lon],
-            [lat2, lon2],
-        ],
-        [
-            [lat2, lon2],
-            [leftLat, leftLon],
-        ],
-        [
-            [lat2, lon2],
-            [rightLat, rightLon],
-        ],
-    ];
 }

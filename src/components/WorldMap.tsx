@@ -11,7 +11,7 @@ type Props = {
 };
 
 export function WorldMap({ center = [30, -30], zoom = 3, children }: Props & { children?: React.ReactNode }) {
-    const { shipsPositions, loading } = useShipsPositions();
+    const { shipsPositions, loadingShipsPositions } = useShipsPositions();
 
     const grouped = (shipsPositions ?? []).reduce<Record<string, ShipPoint[]>>((acc, point) => {
         acc[point.journey_id] = acc[point.journey_id] || [];
@@ -19,7 +19,7 @@ export function WorldMap({ center = [30, -30], zoom = 3, children }: Props & { c
         return acc;
     }, {});
 
-    if (loading) {
+    if (loadingShipsPositions) {
         return <LoadingOverlay />;
     }
 

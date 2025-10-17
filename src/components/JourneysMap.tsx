@@ -18,7 +18,7 @@ type Props = {
 
 export function JourneysMap(props: Props) {
     const { filterType, selectedId, setFilterType, setSelectedId } = props;
-    const { shipsPositions, loading } = useShipsPositions();
+    const { shipsPositions, loadingShipsPositions } = useShipsPositions();
 
     const journeyIds = useMemo(
         () => Array.from(new Set((shipsPositions ?? []).map((d) => d.journey_id))),
@@ -111,7 +111,7 @@ export function JourneysMap(props: Props) {
                 />
             </div>
             <WorldMap>
-                {(loading || !grouped) && <LoadingOverlay />}
+                {(loadingShipsPositions || !grouped) && <LoadingOverlay />}
                 {Object.entries(grouped).map(([key, points], idx) => (
                     <React.Fragment key={key}>
                         <Polyline
