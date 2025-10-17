@@ -27,7 +27,7 @@ export async function prepareModelData({
 
         // Find the closest storm to the first pair of coordinates
         let closestStorm = null;
-        let minDistanceToStormNm = Infinity;
+        let minDistanceToStormNm = 99999;
 
         for (const storm of activeStorms) {
             const distanceToStormNm = haversineDistanceNm(lat1, lon1, storm.latitudeNumeric, storm.longitudeNumeric);
@@ -42,7 +42,7 @@ export async function prepareModelData({
         );
 
         // Get the intensity of the closest storm
-        const stormWind = closestStorm?.intensity || "Unknown";
+        const stormWind = closestStorm?.intensity || "0";
 
         // Fetch marine weather for the first coordinate
         const marineWeather = await getMarineWeather(lat1, lon1);
