@@ -1,38 +1,18 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useContext } from "react";
 import dynamic from "next/dynamic";
 import { StormMapMode } from "@/types";
+import { useStorms } from "@/providers/StormsProvider";
 
 const StormsMap = dynamic(() => import("@/components/StormsMap").then((mod) => mod.StormsMap), { ssr: false });
 
 export default function StormsPage() {
+    const { atlanticStorms, noaaPoints, arrows, regions, loadingStorms } = useStorms();
     const [mapMode, setMapMode] = useState<StormMapMode>("active_storms");
-    const [noaaPoints, setNoaaPoints] = useState([]);
-    const [arrows, setArrows] = useState([]);
-    const [regions, setRegions] = useState([]);
-    const [atlanticStorms, setAtlanticStorms] = useState<any[] | null>(null);
+
     const [heatmapPoints, setHeatmapPoints] = useState<any[]>([]);
-    const [stormsLoading, setStormsLoading] = useState(true);
-    const [stormsFetched, setStormsFetched] = useState(false);
-    const [heatmapFetched, setHeatmapFetched] = useState(false);
-
-    useEffect(() => {
-        fetch("/api/storms")
-            .then((res) => res.json())
-            .then(setAtlanticStorms)
-            .finally(() => setStormsFetched(true));
-    }, []);
-
-    useEffect(() => {
-        fetch("/api/potential-storms")
-            .then((res) => res.json())
-            .then((data) => {
-                setNoaaPoints(data.points || []);
-                setArrows(data.arrows || []);
-                setRegions(data.regions || []);
-            })
-            .catch(console.error);
-    }, []);
+    const [heatmapLoaded, setHeatmapLoaded] = useState(false);
+    const [stormsMapLoading, setStormsMapLoading] = useState(true);
 
     useEffect(() => {
         fetch("/hurdat2_storm_data_1851_2025.csv")
@@ -55,19 +35,19 @@ export default function StormsPage() {
                     })
                     .filter((p) => !isNaN(p.lat) && !isNaN(p.lng));
                 setHeatmapPoints(points);
-                setHeatmapFetched(true);
+                setHeatmapLoaded(true);
             })
             .catch((err) => {
                 console.error(err);
-                setHeatmapFetched(true);
+                setHeatmapLoaded(true);
             });
     }, []);
 
     useEffect(() => {
-        if (stormsFetched && heatmapFetched) {
-            setStormsLoading(false);
+        if (!loadingStorms && heatmapLoaded) {
+            setStormsMapLoading(false);
         }
-    }, [stormsFetched, heatmapFetched]);
+    }, [loadingStorms, heatmapLoaded]);
 
     return (
         <div className="relative w-full min-h-0 box-border overflow-hidden" style={{ height: "calc(100vh - 64px)" }}>
@@ -79,7 +59,7 @@ export default function StormsPage() {
                 noaaPoints={noaaPoints}
                 arrows={arrows}
                 regions={regions}
-                stormsLoading={stormsLoading}
+                stormsLoading={stormsMapLoading}
             />
         </div>
     );

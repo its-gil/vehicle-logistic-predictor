@@ -38,8 +38,6 @@ export async function GET(req: Request) {
             parseFloat(modelData.distance_to_storm_nm),
         ];
 
-        console.log("Features for model prediction:", features);
-
         // Path to the AI model
         const modelPath = path.join(process.cwd(), "src", "utils", "random_forest_model.pkl");
 
