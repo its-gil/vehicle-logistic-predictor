@@ -1,5 +1,4 @@
-//const citiesAmericaWeather = "https://api.weather.gov/gridpoints/{office}/{grid}/forecast/hourly";
-//const citiesAmericaAlerts = "https://api.weather.gov/zones/forecast/{zone}";
+import { cp } from "fs";
 
 const atlanticAlertsUrl = "https://api.weather.gov/alerts/active/region/AT";
 
@@ -20,6 +19,7 @@ export type AtlanticAlert = {
     senderName: string;
     status: string;
     web: string;
+    references?: { "@id": string }[];
 };
 
 export async function getAtlanticAlerts(): Promise<AtlanticAlert[]> {
@@ -29,7 +29,8 @@ export async function getAtlanticAlerts(): Promise<AtlanticAlert[]> {
 
     if (!data.features || !Array.isArray(data.features)) return [];
 
-    return data.features.map((feature: any) => {
+    // Step 1: Map alerts to the AtlanticAlert type
+    const alerts: AtlanticAlert[] = data.features.map((feature: any) => {
         const p = feature.properties || {};
         return {
             id: p.id,
@@ -50,4 +51,23 @@ export async function getAtlanticAlerts(): Promise<AtlanticAlert[]> {
             web: p.web,
         };
     });
+
+    // Step 2: Transform IDs and track the first appearing ones
+    const mostRecentIds = new Map<string, AtlanticAlert>();
+
+    alerts.forEach((alert) => {
+        // Extract the base ID (remove the last two segments)
+        const baseId = alert.id.split(".").slice(0, -2).join(".");
+        // Only add the first alert for each base ID
+        if (!mostRecentIds.has(baseId)) {
+            mostRecentIds.set(baseId, { ...alert });
+        }
+    });
+
+    console.log("Fetched Atlantic alerts:", Array.from(mostRecentIds));
+
+    // Step 3: Return only the first appearing alerts
+    return Array.from(mostRecentIds.values()).filter(
+        (alert) => alert.urgency !== "Past" && alert.severity !== "Minor" && alert.event !== "Small Craft Advisory"
+    );
 }

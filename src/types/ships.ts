@@ -2,5 +2,5 @@ export type ShipPoint = { mmsi: string; journey_id: string; lat: number; lon: nu
 
 export type ShipsPositionsContextType = {
     shipsPositions: ShipPoint[] | null;
-    loading: boolean;
+    loadingShipsPositions?: boolean;
 };

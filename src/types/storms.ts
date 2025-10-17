@@ -1,5 +1,14 @@
 export type StormMapMode = "active_storms" | "cyclone_disturbances";
 
+export type StormsContextType = {
+    atlanticStorms: StormPoint[] | null;
+    noaaPoints: NOAAFeature[];
+    arrows: NOAAArrowFeature[];
+    regions: NOAARegionFeature[];
+    timestamp: string;
+    loadingStorms?: boolean;
+};
+
 export type StormPoint = {
     id?: string;
     lat: number;

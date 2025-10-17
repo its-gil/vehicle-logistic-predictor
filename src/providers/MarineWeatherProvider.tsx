@@ -5,16 +5,16 @@ import { MarineWeatherResult, MarineWeatherContextType } from "@/types";
 const MarineWeatherContext = createContext<MarineWeatherContextType>({
     marineWeather: [],
     timestamp: "",
-    loading: true,
+    loadingMarineWeather: true,
 });
 
 export function MarineWeatherProvider({ children }: { children: React.ReactNode }) {
     const [marineWeather, setMarineWeather] = useState<MarineWeatherResult[]>([]);
-    const [loading, setLoading] = useState(true);
+    const [loadingMarineWeather, setLoadingMarineWeather] = useState(true);
 
     useEffect(() => {
         async function fetchMarineWeatherGeneral() {
-            setLoading(true);
+            setLoadingMarineWeather(true);
             try {
                 const res = await fetch("/api/repeating-coordinates");
                 const data = await res.json();
@@ -36,14 +36,16 @@ export function MarineWeatherProvider({ children }: { children: React.ReactNode 
             } catch (error) {
                 console.error("Error fetching marine weather data:", error);
             }
-            setLoading(false);
+            setLoadingMarineWeather(false);
         }
 
         fetchMarineWeatherGeneral();
     }, []);
 
     return (
-        <MarineWeatherContext.Provider value={{ marineWeather, timestamp: new Date().toISOString(), loading }}>
+        <MarineWeatherContext.Provider
+            value={{ marineWeather, timestamp: new Date().toISOString(), loadingMarineWeather }}
+        >
             {children}
         </MarineWeatherContext.Provider>
     );

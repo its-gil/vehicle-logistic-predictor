@@ -19,7 +19,7 @@ export type MarineWeatherResult = {
 export type MarineWeatherContextType = {
     marineWeather: MarineWeatherResult[];
     timestamp: string;
-    loading?: boolean;
+    loadingMarineWeather?: boolean;
 };
 
 export type MarineWeatherInput = {

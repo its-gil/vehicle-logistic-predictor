@@ -3,12 +3,12 @@ import { ShipPoint, ShipsPositionsContextType } from "@/types";
 
 const ShipsPositionsContext = createContext<ShipsPositionsContextType>({
     shipsPositions: null,
-    loading: true,
+    loadingShipsPositions: true,
 });
 
 export function ShipsPositionsProvider({ children }: { children: React.ReactNode }) {
     const [shipsPositions, setShipsPositions] = useState<ShipPoint[] | null>(null);
-    const [loading, setLoading] = useState(true);
+    const [loadingShipsPositions, setLoadingShipsPositions] = useState(true);
 
     console.log("Looking for ships positions");
     useEffect(() => {
@@ -23,13 +23,15 @@ export function ShipsPositionsProvider({ children }: { children: React.ReactNode
                     date: row.date,
                 }));
                 setShipsPositions(points);
-                setLoading(false);
+                setLoadingShipsPositions(false);
             })
-            .catch(() => setLoading(false));
+            .catch(() => setLoadingShipsPositions(false));
     }, []);
 
     return (
-        <ShipsPositionsContext.Provider value={{ shipsPositions, loading }}>{children}</ShipsPositionsContext.Provider>
+        <ShipsPositionsContext.Provider value={{ shipsPositions, loadingShipsPositions }}>
+            {children}
+        </ShipsPositionsContext.Provider>
     );
 }
 

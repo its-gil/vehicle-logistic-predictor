@@ -1,6 +1,7 @@
 const WEATHERAPI_ALERTS_API_KEY = process.env.WEATHERAPI_ALERTS_API_KEY;
 
 type Alert = {
+    identifier: string;
     headline: string;
     severity: string;
     urgency: string;
@@ -33,8 +34,9 @@ export async function getCityAlerts(lat: number, lon: number): Promise<CityAlert
         const data = await res.json();
 
         const localtime = formatDate(data.location?.localtime || "");
-        const alerts: Alert[] =
+        const rawAlerts: Alert[] =
             data.alerts?.alert?.map((a: any) => ({
+                identifier: a.identifier,
                 headline: a.headline,
                 severity: a.severity,
                 urgency: a.urgency,
@@ -44,6 +46,19 @@ export async function getCityAlerts(lat: number, lon: number): Promise<CityAlert
                 effective: formatDate(a.effective),
                 expires: formatDate(a.expires),
             })) || [];
+
+        // Step 1: Extract base IDs and keep only the last entries
+        const lastAlertsByBaseId = new Map<string, Alert>();
+
+        rawAlerts.forEach((alert) => {
+            // Extract the base ID (last three groups delimited by "-")
+            const baseId = alert.identifier.split("-").slice(-3).join("-");
+            // Always overwrite to keep the last entry for each base ID
+            lastAlertsByBaseId.set(baseId, alert);
+        });
+
+        // Step 2: Return the filtered alerts
+        const alerts = Array.from(lastAlertsByBaseId.values());
 
         return { localtime, alerts };
     } catch (e) {
