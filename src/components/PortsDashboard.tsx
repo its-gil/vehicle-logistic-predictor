@@ -73,7 +73,7 @@ export function PortsDashboard(props: Props) {
     const currentAlert = alertsArray[alertIdx];
 
     return (
-        <div className="flex-1 flex flex-col h-full min-h-0 bg-zinc-900 border-r border-zinc-800 p-8">
+        <div className="flex flex-col flex-1 h-full min-h-0 bg-zinc-900 border-r border-zinc-800 p-8">
             {port ? (
                 <div className="flex-1 flex flex-col w-full h-full min-h-0">
                     <div className="flex justify-between items-center gap-6 mb-6">
