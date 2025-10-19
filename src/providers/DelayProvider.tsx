@@ -1,0 +1,55 @@
+"use client";
+
+import React, { createContext, useContext, useState, useEffect } from "react";
+
+type DelayInfo = {
+    shipCoordinates: { lat: number | null; lon: number | null };
+    destinationCoordinates: { lat: number | null; lon: number | null };
+    course: string;
+    delay: string;
+};
+
+type DelayContextType = {
+    delayInfo: DelayInfo | null;
+    setDelayInfo: (info: DelayInfo) => void;
+    rotatedShipIcon: L.DivIcon | null;
+};
+
+const DelayContext = createContext<DelayContextType | undefined>(undefined);
+
+export const DelayProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+    const [delayInfo, setDelayInfo] = useState<DelayInfo>({
+        shipCoordinates: { lat: null, lon: null },
+        destinationCoordinates: { lat: null, lon: null },
+        course: "-",
+        delay: "-",
+    });
+
+    const [rotatedShipIcon, setRotatedShipIcon] = useState<L.DivIcon | null>(null);
+
+    // Automatically update the rotated ship icon whenever the course changes, with lazy loading
+    useEffect(() => {
+        if (delayInfo.course && delayInfo.course !== "-") {
+            import("@/constants/iconConstants").then(({ getRotatedShipIcon }) => {
+                const icon = getRotatedShipIcon(parseFloat(delayInfo.course));
+                if (icon) {
+                    setRotatedShipIcon(icon);
+                }
+            });
+        } else {
+            setRotatedShipIcon(null);
+        }
+    }, [delayInfo.course]);
+
+    return (
+        <DelayContext.Provider value={{ delayInfo, setDelayInfo, rotatedShipIcon }}>{children}</DelayContext.Provider>
+    );
+};
+
+export const useDelay = (): DelayContextType => {
+    const context = useContext(DelayContext);
+    if (!context) {
+        throw new Error("useDelay must be used within a DelayProvider");
+    }
+    return context;
+};

@@ -2,7 +2,7 @@ import { useMap } from "react-leaflet";
 import { useEffect } from "react";
 import "leaflet.heat";
 
-type HeatmapPoint = [number, number, number?]; // [lat, lng, intensity?]
+type HeatmapPoint = [number, number, number?];
 
 type Props = {
     points: HeatmapPoint[];
@@ -12,7 +12,7 @@ type Props = {
     opacity?: number;
 };
 
-export function HeatmapLayer({ points, max = 1.0, radius = 25, blur = 15, opacity = 0.6 }: Props) {
+export default function HeatmapLayer({ points, max = 1.0, radius = 25, blur = 15, opacity = 0.6 }: Props) {
     const map = useMap();
 
     useEffect(() => {

@@ -1,0 +1,48 @@
+import { MarkersStormsProps } from "@/types/maps";
+import { useMapIcons } from "@/hooks/useMapIcons";
+import { Marker, Tooltip } from "react-leaflet";
+
+export default function MarkersStorms(props: MarkersStormsProps) {
+    const { storms } = props;
+    const { icons, isLoading } = useMapIcons();
+
+    return (
+        <>
+            {!isLoading &&
+                icons &&
+                storms?.map((storm) => (
+                    <Marker
+                        key={storm.id}
+                        position={[storm.latitudeNumeric ?? storm.lat, storm.longitudeNumeric ?? storm.lon]}
+                        icon={icons?.storm}
+                    >
+                        <Tooltip direction="top" offset={[0, -5]} opacity={1} permanent={false}>
+                            <div>
+                                <div className="font-bold">{storm.name}</div>
+                                <div>
+                                    <span className="font-semibold">Classification:</span> {storm.classification}
+                                </div>
+                                <div>
+                                    <span className="font-semibold">Location:</span>{" "}
+                                    {storm.latitudeNumeric ?? storm.lat}, {storm.longitudeNumeric ?? storm.lon}
+                                </div>
+                                <div>
+                                    <span className="font-semibold">Intensity:</span> {storm.intensity}
+                                </div>
+                                <div>
+                                    <span className="font-semibold">Speed:</span> {storm.movementSpeed} kt
+                                </div>
+                                <div>
+                                    <span className="font-semibold">Direction:</span> {storm.movementDir}
+                                    &deg;
+                                </div>
+                                <div>
+                                    <span className="font-semibold">Last Update:</span> {storm.lastUpdate}
+                                </div>
+                            </div>
+                        </Tooltip>
+                    </Marker>
+                ))}
+        </>
+    );
+}

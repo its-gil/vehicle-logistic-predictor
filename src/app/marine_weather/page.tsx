@@ -1,9 +1,10 @@
 "use client";
 import dynamic from "next/dynamic";
 import { useMarineWeather } from "@/providers/MarineWeatherProvider";
-import WeatherSummaryComponent from "@/components/WeatherSummaryComponent";
+import WeatherSummaryComponent from "@/components/SummaryWeatherComponents";
+import { viewLegends } from "@/constants";
 
-const MarineWeatherMap = dynamic(() => import("@/components/MarineWeatherMap").then((mod) => mod.MarineWeatherMap), {
+const MapMarineWeather = dynamic(() => import("@/components/MapMarineWeather").then((mod) => mod.MapMarineWeather), {
     ssr: false,
 });
 
@@ -22,7 +23,12 @@ export default function MarineWeatherPage() {
                 <WeatherSummaryComponent marineWeather={marineWeather} loading={loadingMarineWeather} />
             </div>
             <div className="w-2/3 flex-1 flex flex-col h-full min-h-0 justify-center items-center bg-black">
-                <MarineWeatherMap data={marineWeather} timestamp={timestamp} loading={loadingMarineWeather} />
+                <MapMarineWeather
+                    marineWeather={marineWeather}
+                    legend={viewLegends.storms}
+                    timestamp={timestamp}
+                    loading={loadingMarineWeather}
+                />
             </div>
         </div>
     );

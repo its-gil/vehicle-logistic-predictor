@@ -1,14 +1,13 @@
 "use client";
 import React from "react";
-
-type StormMapMode = "active_storms" | "cyclone_disturbances";
+import { StormMapMode } from "@/types";
 
 interface StormFilterOverlayProps {
     mapMode: StormMapMode;
     onMapModeChange: (mode: StormMapMode) => void;
 }
 
-export function StormFilterOverlay({ mapMode, onMapModeChange }: StormFilterOverlayProps) {
+export default function OverlayStormFilter({ mapMode, onMapModeChange }: StormFilterOverlayProps) {
     return (
         <div className="bg-zinc-900 bg-opacity-10 rounded shadow-lg p-4 flex flex-col gap-4" style={{ minWidth: 220 }}>
             <div className="flex gap-2 items-center">

@@ -1,10 +1,12 @@
 "use client";
-import { useState, useEffect, useContext } from "react";
+import { useState, useEffect } from "react";
 import dynamic from "next/dynamic";
 import { StormMapMode } from "@/types";
 import { useStorms } from "@/providers/StormsProvider";
+import { viewLegends } from "@/constants/";
+import { formatTimestamp } from "@/utils/formatTimestamp";
 
-const StormsMap = dynamic(() => import("@/components/StormsMap").then((mod) => mod.StormsMap), { ssr: false });
+const MapStorms = dynamic(() => import("@/components/MapStorms").then((mod) => mod.MapStorms), { ssr: false });
 
 export default function StormsPage() {
     const { atlanticStorms, noaaPoints, arrows, regions, loadingStorms } = useStorms();
@@ -51,14 +53,16 @@ export default function StormsPage() {
 
     return (
         <div className="relative w-full min-h-0 box-border overflow-hidden" style={{ height: "calc(100vh - 64px)" }}>
-            <StormsMap
-                mapMode={mapMode}
-                onMapModeChange={setMapMode}
+            <MapStorms
+                stormMapMode={mapMode}
+                onStormMapModeChange={setMapMode}
                 storms={atlanticStorms || []}
                 heatmapPoints={heatmapPoints}
                 noaaPoints={noaaPoints}
                 arrows={arrows}
                 regions={regions}
+                legend={viewLegends.storms}
+                timestamp={formatTimestamp(new Date())}
                 stormsLoading={stormsMapLoading}
             />
         </div>

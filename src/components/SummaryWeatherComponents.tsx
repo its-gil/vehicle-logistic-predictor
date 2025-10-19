@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import LoadingOverlay from "./LoadingOverlay";
+import OverlayLoading from "./OverlayLoading";
 import { getAtlanticAlerts, AtlanticAlert } from "@/utils/getAtlanticAlerts";
 
 type WeatherSummaryProps = {
@@ -41,7 +41,7 @@ const units: Record<string, string> = {
     ocean_current_direction: "°",
 };
 
-export default function WeatherSummaryComponent({ marineWeather, loading }: WeatherSummaryProps) {
+export default function SummaryWeatherComponents({ marineWeather, loading }: WeatherSummaryProps) {
     const [averages, setAverages] = useState<Record<string, number | null> | null>(null);
     const [loadingAverages, setLoadingAverages] = useState<boolean>(true);
 
@@ -88,7 +88,7 @@ export default function WeatherSummaryComponent({ marineWeather, loading }: Weat
 
             {loadingAverages ? (
                 <div className="flex-1">
-                    <LoadingOverlay className="relative" />
+                    <OverlayLoading className="relative" />
                 </div>
             ) : (
                 <div className="flex-1 h-full space-y-2 text-sm">

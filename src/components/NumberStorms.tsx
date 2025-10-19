@@ -2,10 +2,12 @@
 
 import React from "react";
 import { useStorms } from "@/providers/StormsProvider";
-import LoadingOverlay from "./LoadingOverlay";
+import OverlayLoading from "./OverlayLoading";
+import { useRouter } from "next/navigation";
 
-export default function NumberStormsDashboard() {
+export default function NumberStorms() {
     const { atlanticStorms, noaaPoints, loadingStorms } = useStorms();
+    const router = useRouter();
 
     // Calculate the total number of storms
     const totalStorms = (atlanticStorms ? atlanticStorms.length : 0) + (noaaPoints ? noaaPoints.length : 0);
@@ -19,16 +21,19 @@ export default function NumberStormsDashboard() {
             : "bg-red-500"; // Red for more than 1 storm
 
     return (
-        <div className="flex flex-col flex-1 justify-between p-6 bg-black text-white rounded-lg shadow-lg">
-            <h1 className="text-2xl font-semibold mb-4">Total Storms</h1>
+        <button
+            onClick={() => router.push("/storms")}
+            className="flex flex-col flex-1 justify-between p-6 bg-black text-white rounded-lg shadow-lg hover:bg-zinc-800 transition cursor-pointer text-left"
+        >
+            <h1 className="text-2xl font-semibold mb-4">Cyclones and Storms</h1>
             {loadingStorms ? (
-                <LoadingOverlay />
+                <OverlayLoading />
             ) : (
                 <div className="flex flex-row items-center justify-between">
                     <p className="text-4xl">{totalStorms}</p>
                     <div className={`w-3 h-3 rounded-full ${dotColor}`} />
                 </div>
             )}
-        </div>
+        </button>
     );
 }

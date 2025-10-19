@@ -2,10 +2,12 @@
 import { useState, useEffect } from "react";
 import dynamic from "next/dynamic";
 import { cityPortList } from "@/utils/cityPortList";
-import { PortsDashboard } from "@/components/PortsDashboard";
+import { SummaryPortsComponent } from "@/components/SummaryPortsComponent";
 import { Port, CityWeatherResult, CityAlerts } from "@/types";
+import { viewLegends } from "@/constants";
+import { formatTimestamp } from "@/utils/formatTimestamp";
 
-const PortsMap = dynamic(() => import("@/components/PortsMap").then((mod) => mod.PortsMap), { ssr: false });
+const MapPorts = dynamic(() => import("@/components/MapPorts").then((mod) => mod.MapPorts), { ssr: false });
 
 export default function PortsPage() {
     const [selectedPort, setSelectedPort] = useState<Port | null>(
@@ -61,7 +63,7 @@ export default function PortsPage() {
             className="flex flex-row w-full min-h-0 box-border overflow-hidden"
             style={{ height: "calc(100vh - 64px)" }}
         >
-            <PortsDashboard
+            <SummaryPortsComponent
                 port={selectedPort}
                 portWeather={portWeather}
                 weatherMode={weatherMode}
@@ -70,7 +72,12 @@ export default function PortsPage() {
                 loading={overallLoading}
             />
             <div className="flex-1 flex flex-col h-full min-h-0 justify-center items-center bg-black">
-                <PortsMap ports={cityPortList} onPortClick={setSelectedPort} />
+                <MapPorts
+                    ports={cityPortList}
+                    onPortClick={setSelectedPort}
+                    legend={viewLegends.ports}
+                    timestamp={formatTimestamp(new Date())}
+                />
             </div>
         </div>
     );

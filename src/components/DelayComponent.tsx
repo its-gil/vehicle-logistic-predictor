@@ -2,23 +2,17 @@
 
 import React, { useState } from "react";
 import { cityPortList } from "@/utils/cityPortList";
+import { useDelay } from "@/providers/DelayProvider";
 
-type DelayDashboardProps = {
-    onSubmit: (
-        shipCoordinates: { lat: number; lon: number },
-        destinationCoordinates: { lat: number; lon: number },
-        course: string
-    ) => void;
-};
-
-export default function DelayDashboard({ onSubmit }: DelayDashboardProps) {
-    const [targetDelay, setTargetDelay] = useState<string>("0");
-
+export default function DelayDashboard() {
+    const [targetDelay, setTargetDelay] = useState<string>("-");
     const [localLat, setLocalLat] = useState<string>("");
     const [localLon, setLocalLon] = useState<string>("");
     const [localCourse, setLocalCourse] = useState<string>("");
     const [localDestination, setLocalDestination] = useState<string>(cityPortList[0].name);
     const [localApiError, setLocalApiError] = useState<string | null>(null);
+
+    const { setDelayInfo } = useDelay();
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -40,10 +34,17 @@ export default function DelayDashboard({ onSubmit }: DelayDashboardProps) {
                 const shipCoordinates = { lat: parseFloat(localLat), lon: parseFloat(localLon) };
                 const destinationCoordinates = { lat: selectedPort.lat, lon: selectedPort.lon };
                 const course = localCourse;
+                const delay = data.target_delay || "-";
 
-                // Pass the results back to the parent component
-                onSubmit(shipCoordinates, destinationCoordinates, course);
-                setTargetDelay(data.target_delay);
+                // Update the DelayProvider with the new data
+                setDelayInfo({
+                    shipCoordinates,
+                    destinationCoordinates,
+                    course,
+                    delay,
+                });
+
+                setTargetDelay(delay);
                 setLocalApiError(null);
             } else {
                 setLocalApiError(data.error || "Failed to fetch delay prediction.");
@@ -57,6 +58,9 @@ export default function DelayDashboard({ onSubmit }: DelayDashboardProps) {
         <div className="flex flex-row justify-between gap-8 px-12 py-6 bg-zinc-900 rounded-lg shadow-lg ">
             <form onSubmit={handleSubmit} className="flex flex-col justify-between gap-4">
                 <div className="flex flex-col gap-4">
+                    <div className="text-white rounded flex flex-col justify-center">
+                        <h1 className="text-4xl font-semibold mb-4">Delay Prediction</h1>
+                    </div>
                     <div className="flex flex-row gap-4">
                         <input
                             type="number"
@@ -105,17 +109,15 @@ export default function DelayDashboard({ onSubmit }: DelayDashboardProps) {
                     Submit
                 </button>
             </form>
-            <div className="flex flex-col bg-zinc-900 text-white rounded-lg shadow-lg justify-between">
-                <div className="text-white rounded flex flex-col justify-center">
-                    <h1 className="text-4xl font-semibold mb-4">Delay Prediction</h1>
-                </div>
-                {/* Prediction Result */}
-                <div className="text-white rounded flex flex-col">
+            {targetDelay !== "-" && (
+                <div className="text-white rounded flex flex-col justify-end">
                     <p className="text-9xl">
-                        {targetDelay !== null ? `${targetDelay}` : "0"}
+                        {targetDelay}
                         <span className="text-4xl"> h</span>
                     </p>
                 </div>
+            )}
+            <div className="flex flex-col bg-zinc-900 text-white rounded-lg shadow-lg justify-between">
                 {localApiError && (
                     <div className="mt-4 p-3 bg-red-700 text-white rounded text-sm">
                         <h4 className="font-bold">Error:</h4>

@@ -1,8 +1,9 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import LoadingOverlay from "./LoadingOverlay";
+import OverlayLoading from "./OverlayLoading";
 import { CityAlertResult } from "@/utils/getCityAlerts";
+import { useRouter } from "next/navigation";
 
 type NumberCityAlertsProps = {
     lat: number | null;
@@ -12,6 +13,8 @@ type NumberCityAlertsProps = {
 export default function NumberCityAlerts({ lat, lon }: NumberCityAlertsProps) {
     const [alerts, setAlerts] = useState<number | "Submit destination">("Submit destination");
     const [loading, setLoading] = useState<boolean>(false);
+
+    const router = useRouter();
 
     useEffect(() => {
         async function fetchCityAlerts() {
@@ -47,14 +50,17 @@ export default function NumberCityAlerts({ lat, lon }: NumberCityAlertsProps) {
             : "bg-transparent";
 
     return (
-        <div className="flex flex-col flex-1 p-6 justify-between bg-black text-white rounded-lg shadow-lg">
+        <button
+            onClick={() => router.push("/ports")}
+            className="flex flex-col flex-1 justify-between p-6 bg-black text-white rounded-lg shadow-lg hover:bg-zinc-800 transition cursor-pointer text-left"
+        >
             <h1 className="text-2xl font-semibold mb-4">
                 Destination
                 <br />
                 Alerts
             </h1>
             {loading ? (
-                <LoadingOverlay />
+                <OverlayLoading />
             ) : (
                 <div className="flex flex-row items-center justify-between">
                     {alerts === "Submit destination" ? (
@@ -70,6 +76,6 @@ export default function NumberCityAlerts({ lat, lon }: NumberCityAlertsProps) {
                     )}
                 </div>
             )}
-        </div>
+        </button>
     );
 }

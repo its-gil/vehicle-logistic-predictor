@@ -12,7 +12,7 @@ interface MapFilterOverlayProps {
     mmsis: string[];
 }
 
-export function JourneyFilterOverlay({
+export default function OverlayJourneyFilter({
     filterType,
     onFilterTypeChange,
     selectedId,
@@ -21,6 +21,15 @@ export function JourneyFilterOverlay({
     mmsis,
 }: MapFilterOverlayProps) {
     const options = filterType === "journey_id" ? journeyIds : mmsis;
+
+    const handleFilterTypeChange = (type: FilterType) => {
+        onFilterTypeChange(type);
+
+        const firstId = type === "journey_id" ? journeyIds[0] : mmsis[0];
+        if (firstId) {
+            onSelectedIdChange(firstId);
+        }
+    };
 
     return (
         <div className="bg-zinc-900 bg-opacity-90 rounded shadow-lg p-4 flex flex-col gap-4" style={{ minWidth: 220 }}>
@@ -32,7 +41,7 @@ export function JourneyFilterOverlay({
                             ? "bg-yellow-400 text-black"
                             : "bg-zinc-800 text-white hover:bg-zinc-700"
                     }`}
-                    onClick={() => onFilterTypeChange("journey_id")}
+                    onClick={() => handleFilterTypeChange("journey_id")}
                 >
                     Journey ID
                 </button>
@@ -40,7 +49,7 @@ export function JourneyFilterOverlay({
                     className={`px-3 py-1 rounded font-semibold ${
                         filterType === "mmsi" ? "bg-yellow-400 text-black" : "bg-zinc-800 text-white hover:bg-zinc-700"
                     }`}
-                    onClick={() => onFilterTypeChange("mmsi")}
+                    onClick={() => handleFilterTypeChange("mmsi")}
                 >
                     MMSI
                 </button>

@@ -7,7 +7,7 @@ type LoadingOverlayProps = {
     speed?: number; // animation duration in seconds
 };
 
-export default function LoadingOverlay({
+export default function OverlayLoading({
     size = 64,
     color = "#ffffff",
     className = "",

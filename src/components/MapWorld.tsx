@@ -2,7 +2,7 @@
 import { MapContainer, TileLayer, Polyline } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import { useShipsPositions } from "@/providers/ShipsPositionsProvider";
-import LoadingOverlay from "./LoadingOverlay";
+import LoadingOverlay from "./OverlayLoading";
 import { ShipPoint } from "@/types";
 
 type Props = {
@@ -10,7 +10,7 @@ type Props = {
     zoom?: number;
 };
 
-export function WorldMap({ center = [30, -30], zoom = 3, children }: Props & { children?: React.ReactNode }) {
+export default function MapWorld({ center = [50, -50], zoom = 3, children }: Props & { children?: React.ReactNode }) {
     const { shipsPositions, loadingShipsPositions } = useShipsPositions();
 
     const grouped = (shipsPositions ?? []).reduce<Record<string, ShipPoint[]>>((acc, point) => {

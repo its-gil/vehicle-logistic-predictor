@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import "leaflet/dist/leaflet.css";
-import LoadingOverlay from "./LoadingOverlay";
+import OverlayLoading from "./OverlayLoading";
 import { Port, CityWeatherResult, CityAlerts } from "@/types";
 
 type Props = {
@@ -58,7 +58,7 @@ function WeatherDisplay({ weather }: { weather: Record<string, any> }) {
     );
 }
 
-export function PortsDashboard(props: Props) {
+export function SummaryPortsComponent(props: Props) {
     const { port, portWeather, weatherMode, setWeatherMode, cityAlerts, loading } = props;
 
     const [alertIdx, setAlertIdx] = useState(0);
@@ -102,7 +102,7 @@ export function PortsDashboard(props: Props) {
 
                     {loading && (
                         <div className="flex-1">
-                            <LoadingOverlay className="relative" />
+                            <OverlayLoading className="relative" />
                         </div>
                     )}
 

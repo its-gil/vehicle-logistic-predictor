@@ -3,3 +3,6 @@ export * from "./ships";
 export * from "./marineWeather";
 export * from "./storms";
 export * from "./modelData";
+export * from "./legend";
+export * from "./maps";
+export * from "./icons";

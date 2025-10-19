@@ -5,6 +5,7 @@ import Sidebar from "@/components/Sidebar";
 import { ShipsPositionsProvider } from "@/providers/ShipsPositionsProvider";
 import { MarineWeatherProvider } from "@/providers/MarineWeatherProvider";
 import { StormsProvider } from "@/providers/StormsProvider";
+import { DelayProvider } from "@/providers/DelayProvider";
 
 export default function AppShell({ children }: { children: React.ReactNode }) {
     const [isSidebarOpen, setIsSidebarOpen] = useState(true);
@@ -24,21 +25,23 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
         <ShipsPositionsProvider>
             <MarineWeatherProvider>
                 <StormsProvider>
-                    <Navbar
-                        onSidebarToggle={() => setIsSidebarOpen((v) => !v)}
-                        isSidebarOpen={isSidebarOpen}
-                        isMobile={isMobile}
-                    />
-                    <Sidebar isOpen={isSidebarOpen} isMobile={isMobile} onClose={() => setIsSidebarOpen(false)} />
-                    <div
-                        className="transition-all duration-200"
-                        style={{
-                            marginLeft: !isMobile && isSidebarOpen ? 224 : 0,
-                            marginTop: "64px",
-                        }}
-                    >
-                        {children}
-                    </div>
+                    <DelayProvider>
+                        <Navbar
+                            onSidebarToggle={() => setIsSidebarOpen((v) => !v)}
+                            isSidebarOpen={isSidebarOpen}
+                            isMobile={isMobile}
+                        />
+                        <Sidebar isOpen={isSidebarOpen} isMobile={isMobile} onClose={() => setIsSidebarOpen(false)} />
+                        <div
+                            className="transition-all duration-200"
+                            style={{
+                                marginLeft: !isMobile && isSidebarOpen ? 224 : 0,
+                                marginTop: "64px",
+                            }}
+                        >
+                            {children}
+                        </div>
+                    </DelayProvider>
                 </StormsProvider>
             </MarineWeatherProvider>
         </ShipsPositionsProvider>

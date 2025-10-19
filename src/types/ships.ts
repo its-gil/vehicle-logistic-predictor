@@ -1,3 +1,5 @@
+export type journeysFilterType = "journey_id" | "mmsi";
+
 export type ShipPoint = { mmsi: string; journey_id: string; lat: number; lon: number; date: string };
 
 export type ShipsPositionsContextType = {
