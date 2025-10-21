@@ -74,14 +74,14 @@ export default function OverlayLegend({ items }: { items: LegendItem[] }) {
                                     <div className="w-3 h-3 bg-yellow-400 mr-4 rounded-full"></div>
                                 </div>
                             )}
+                            {items.includes("coordinates_route_legend") && (
+                                <div className="flex items-center h-8">
+                                    <div className="w-3 h-3 bg-yellow-400 mr-4 rounded-full"></div>
+                                </div>
+                            )}
                             {items.includes("historical_routes_legend") && (
                                 <div className="flex items-center h-8">
                                     <div className="w-3 h-3 bg-gray-400 mr-4 rounded-full"></div>
-                                </div>
-                            )}
-                            {items.includes("coordinates_route_legend") && (
-                                <div className="flex items-center h-8">
-                                    <div className="w-3 h-3 bg-white mr-4 rounded-full"></div>
                                 </div>
                             )}
                         </div>
@@ -136,14 +136,14 @@ export default function OverlayLegend({ items }: { items: LegendItem[] }) {
                                     <span>Ports for the historical routes</span>
                                 </div>
                             )}
-                            {items.includes("historical_routes_legend") && (
-                                <div className="flex items-center h-8">
-                                    <span>All historical routes over the last 5 years</span>
-                                </div>
-                            )}
                             {items.includes("coordinates_route_legend") && (
                                 <div className="flex items-center h-8">
                                     <span>Coordinates of historical route</span>
+                                </div>
+                            )}
+                            {items.includes("historical_routes_legend") && (
+                                <div className="flex items-center h-8">
+                                    <span>All historical routes over the last 5 years</span>
                                 </div>
                             )}
                         </div>

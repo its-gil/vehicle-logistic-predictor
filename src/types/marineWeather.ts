@@ -1,3 +1,5 @@
+import { WEATHER_MODES } from "@/constants";
+
 export type MarineWeatherResult = {
     lat: number;
     lon: number;
@@ -18,7 +20,7 @@ export type MarineWeatherResult = {
 
 export type MarineWeatherContextType = {
     marineWeather: MarineWeatherResult[];
-    timestamp: string;
+    timestamp: Date;
     loadingMarineWeather?: boolean;
 };
 
@@ -46,3 +48,10 @@ export type MarineFeaturesOutput = {
     swell_impact: number;
     wind_wave_energy: number;
 };
+
+export type MarineWeatherAverages = {
+    marineWeatherAverages: Record<string, number | null> | null;
+    loadingMarineWeather?: boolean;
+};
+
+export type WeatherModeKey = (typeof WEATHER_MODES)[number]["key"];

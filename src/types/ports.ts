@@ -1,3 +1,5 @@
+import { CityAlerts } from "./alerts";
+
 export type Port = {
     name: string;
     lat: number;
@@ -11,16 +13,11 @@ export type CityWeatherResult = {
     week: Record<string, any>;
 };
 
-export type CityAlerts = {
-    localtime: string;
-    alerts: {
-        headline: string;
-        severity: string;
-        urgency: string;
-        certainty: string;
-        event: string;
-        desc: string;
-        effective: string;
-        expires: string;
-    }[];
+export type PortConditions = {
+    port: Port | null;
+    portWeather?: CityWeatherResult | null;
+    cityAlerts?: CityAlerts | null;
+    loading?: boolean;
 };
+
+export type DashboardMode = "alerts" | "weather";

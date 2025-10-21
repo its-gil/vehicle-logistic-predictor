@@ -4,6 +4,7 @@ import React, { useState, useEffect } from "react";
 import OverlayLoading from "./OverlayLoading";
 import { CityAlertResult } from "@/utils/getCityAlerts";
 import { useRouter } from "next/navigation";
+import { cityPortList } from "@/constants";
 
 type NumberCityAlertsProps = {
     lat: number | null;
@@ -49,9 +50,11 @@ export default function NumberCityAlerts({ lat, lon }: NumberCityAlertsProps) {
             ? "bg-red-500"
             : "bg-transparent";
 
+    let port = cityPortList.find((port) => port.lat === lat && port.lon === lon);
+
     return (
         <button
-            onClick={() => router.push("/ports")}
+            onClick={() => router.push(`/ports/${port?.name.toLowerCase() || ""}`)}
             className="flex flex-col flex-1 justify-between p-6 bg-black text-white rounded-lg shadow-lg hover:bg-zinc-800 transition cursor-pointer text-left"
         >
             <h1 className="text-2xl font-semibold mb-4">

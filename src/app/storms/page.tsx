@@ -5,11 +5,12 @@ import { StormMapMode } from "@/types";
 import { useStorms } from "@/providers/StormsProvider";
 import { viewLegends } from "@/constants/";
 import { formatTimestamp } from "@/utils/formatTimestamp";
+import getHistoricalStorms from "@/utils/getHistoricalStorms";
 
 const MapStorms = dynamic(() => import("@/components/MapStorms").then((mod) => mod.MapStorms), { ssr: false });
 
 export default function StormsPage() {
-    const { atlanticStorms, noaaPoints, arrows, regions, loadingStorms } = useStorms();
+    const { atlanticStorms, noaaPoints, arrows, regions, timestamp, loadingStorms } = useStorms();
     const [mapMode, setMapMode] = useState<StormMapMode>("active_storms");
 
     const [heatmapPoints, setHeatmapPoints] = useState<any[]>([]);
@@ -17,32 +18,13 @@ export default function StormsPage() {
     const [stormsMapLoading, setStormsMapLoading] = useState(true);
 
     useEffect(() => {
-        fetch("/hurdat2_storm_data_1851_2025.csv")
-            .then((res) => res.text())
-            .then((csvText) => {
-                const lines = csvText.split("\n").filter((l) => l.trim());
-                const header = lines[0].split(",");
-                const latIdx = header.findIndex((h) => h.toLowerCase().includes("lat"));
-                const lonIdx = header.findIndex((h) => h.toLowerCase().includes("lon"));
-                const windIdx = header.findIndex((h) => h.toLowerCase().includes("wind"));
-                const points = lines
-                    .slice(1)
-                    .map((line) => {
-                        const cols = line.split(",");
-                        return {
-                            lat: parseFloat(cols[latIdx]),
-                            lng: parseFloat(cols[lonIdx]),
-                            intensity: parseInt(cols[windIdx], 10) || 0,
-                        };
-                    })
-                    .filter((p) => !isNaN(p.lat) && !isNaN(p.lng));
-                setHeatmapPoints(points);
-                setHeatmapLoaded(true);
-            })
-            .catch((err) => {
-                console.error(err);
-                setHeatmapLoaded(true);
-            });
+        async function fetchHeatmapPoints() {
+            const points = await getHistoricalStorms();
+            setHeatmapPoints(points);
+            setHeatmapLoaded(true);
+        }
+
+        fetchHeatmapPoints();
     }, []);
 
     useEffect(() => {
@@ -62,7 +44,7 @@ export default function StormsPage() {
                 arrows={arrows}
                 regions={regions}
                 legend={viewLegends.storms}
-                timestamp={formatTimestamp(new Date())}
+                timestamp={formatTimestamp(timestamp)}
                 stormsLoading={stormsMapLoading}
             />
         </div>

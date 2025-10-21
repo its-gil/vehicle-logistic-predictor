@@ -29,5 +29,5 @@ export const viewLegends: Record<string, LegendItem[]> = {
         "historical_routes_legend",
     ],
     ports: ["ship_legend", "ports_legend", "route_arc_legend", "historical_routes_legend"],
-    historical: ["historical_routes_legend", "coordinates_route_legend"],
+    historical: ["storm_legend", "historical_routes_legend", "coordinates_route_legend"],
 };

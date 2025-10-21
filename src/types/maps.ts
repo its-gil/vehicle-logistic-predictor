@@ -27,7 +27,7 @@ export type MapType = {
     selectedJourneyId?: string;
     setSelectedJourneyId?: (id: string) => void;
     legend: LegendItem[];
-    timestamp: string;
+    timestamp?: string;
     stormsLoading?: boolean;
     loading?: boolean;
 };
@@ -47,11 +47,15 @@ export type MarkersMarineWeatherProps = {
 };
 
 export type MarkersPortsProps = {
-    ports?: Port[];
     onPortClick?: (port: Port) => void;
 };
 
 export type MarkersJourneysProps = {
     shipPoints: ShipPoint[];
     journeysFilterType?: journeysFilterType;
+};
+
+export type MapWorldProps = {
+    center?: [number, number];
+    zoom?: number;
 };

@@ -5,7 +5,7 @@ export type StormsContextType = {
     noaaPoints: NOAAFeature[];
     arrows: NOAAArrowFeature[];
     regions: NOAARegionFeature[];
-    timestamp: string;
+    timestamp: Date;
     loadingStorms?: boolean;
 };
 

@@ -6,3 +6,4 @@ export * from "./modelData";
 export * from "./legend";
 export * from "./maps";
 export * from "./icons";
+export * from "./alerts";

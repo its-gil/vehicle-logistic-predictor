@@ -4,13 +4,13 @@ import "leaflet/dist/leaflet.css";
 import { useShipsPositions } from "@/providers/ShipsPositionsProvider";
 import LoadingOverlay from "./OverlayLoading";
 import { ShipPoint } from "@/types";
+import { MapWorldProps } from "@/types/maps";
 
-type Props = {
-    center?: [number, number];
-    zoom?: number;
-};
-
-export default function MapWorld({ center = [50, -50], zoom = 3, children }: Props & { children?: React.ReactNode }) {
+export default function MapWorld({
+    center = [50, -50],
+    zoom = 3,
+    children,
+}: MapWorldProps & { children?: React.ReactNode }) {
     const { shipsPositions, loadingShipsPositions } = useShipsPositions();
 
     const grouped = (shipsPositions ?? []).reduce<Record<string, ShipPoint[]>>((acc, point) => {

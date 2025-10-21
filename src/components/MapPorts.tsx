@@ -2,20 +2,19 @@
 import MapWorld from "./MapWorld";
 import { MapType } from "@/types";
 import "leaflet/dist/leaflet.css";
-import { viewLegends } from "@/constants";
-import OverlayLegend from "./OverlayLegend";
-import MarkersShipDestination from "./MarkersShipDestination";
 import MarkersPorts from "./MarkersPorts";
+import MarkerShip from "./MarkerShip";
+import OverlayLegend from "./OverlayLegend";
 
 export function MapPorts(props: MapType) {
-    const { ports, onPortClick } = props;
+    const { legend } = props;
 
     return (
         <div className="relative w-full h-full">
-            <MapWorld>
-                <MarkersPorts ports={ports} onPortClick={onPortClick} />
-                <MarkersShipDestination />
-                <OverlayLegend items={viewLegends.ports} />
+            <MapWorld center={[50, -40]} zoom={3}>
+                <MarkersPorts />
+                <MarkerShip />
+                <OverlayLegend items={legend} />
             </MapWorld>
         </div>
     );

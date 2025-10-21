@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { cityPortList } from "@/utils/cityPortList";
+import { cityPortList } from "@/constants";
 import { useDelay } from "@/providers/DelayProvider";
 
 export default function DelayDashboard() {
@@ -36,7 +36,6 @@ export default function DelayDashboard() {
                 const course = localCourse;
                 const delay = data.target_delay || "-";
 
-                // Update the DelayProvider with the new data
                 setDelayInfo({
                     shipCoordinates,
                     destinationCoordinates,
@@ -109,7 +108,7 @@ export default function DelayDashboard() {
                     Submit
                 </button>
             </form>
-            {targetDelay !== "-" && (
+            {targetDelay && (
                 <div className="text-white rounded flex flex-col justify-end">
                     <p className="text-9xl">
                         {targetDelay}

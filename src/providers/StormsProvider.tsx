@@ -6,7 +6,7 @@ const StormsContext = createContext<StormsContextType>({
     noaaPoints: [],
     arrows: [],
     regions: [],
-    timestamp: "",
+    timestamp: new Date(0),
     loadingStorms: true,
 });
 
@@ -45,7 +45,7 @@ export function StormsProvider({ children }: { children: React.ReactNode }) {
                 noaaPoints,
                 arrows,
                 regions,
-                timestamp: new Date().toISOString(),
+                timestamp: new Date(),
                 loadingStorms,
             }}
         >

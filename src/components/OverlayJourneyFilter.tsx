@@ -4,61 +4,63 @@ import React from "react";
 type FilterType = "journey_id" | "mmsi";
 
 interface MapFilterOverlayProps {
+    journeyIds: string[];
+    mmsis: string[];
     filterType: FilterType;
     onFilterTypeChange: (type: FilterType) => void;
     selectedId: string;
     onSelectedIdChange: (id: string) => void;
-    journeyIds: string[];
-    mmsis: string[];
 }
 
 export default function OverlayJourneyFilter({
+    journeyIds,
+    mmsis,
     filterType,
     onFilterTypeChange,
     selectedId,
     onSelectedIdChange,
-    journeyIds,
-    mmsis,
 }: MapFilterOverlayProps) {
-    const options = filterType === "journey_id" ? journeyIds : mmsis;
+    const sortedMmsis = [...mmsis].sort((a, b) => a.localeCompare(b));
+
+    const options = filterType === "journey_id" ? journeyIds : sortedMmsis;
 
     const handleFilterTypeChange = (type: FilterType) => {
         onFilterTypeChange(type);
 
-        const firstId = type === "journey_id" ? journeyIds[0] : mmsis[0];
+        const firstId = type === "journey_id" ? journeyIds[0] : sortedMmsis[0];
         if (firstId) {
             onSelectedIdChange(firstId);
         }
     };
 
     return (
-        <div className="bg-zinc-900 bg-opacity-90 rounded shadow-lg p-4 flex flex-col gap-4" style={{ minWidth: 220 }}>
-            <div className="flex gap-2 items-center">
-                <span className="font-semibold text-white">Filter by:</span>
+        <div className="flex flex-col gap-6 px-4 py-6 bg-zinc-900 rounded-lg shadow-lg" style={{ minWidth: 220 }}>
+            <div className="flex gap-4 items-center">
+                <span className="text-sm font-semibold text-white">Filter by</span>
                 <button
-                    className={`px-3 py-1 rounded font-semibold ${
-                        filterType === "journey_id"
-                            ? "bg-yellow-400 text-black"
-                            : "bg-zinc-800 text-white hover:bg-zinc-700"
-                    }`}
-                    onClick={() => handleFilterTypeChange("journey_id")}
-                >
-                    Journey ID
-                </button>
-                <button
-                    className={`px-3 py-1 rounded font-semibold ${
+                    className={`px-3 py-2 rounded font-semibold cursor-pointer ${
                         filterType === "mmsi" ? "bg-yellow-400 text-black" : "bg-zinc-800 text-white hover:bg-zinc-700"
                     }`}
                     onClick={() => handleFilterTypeChange("mmsi")}
                 >
                     MMSI
                 </button>
+                <button
+                    className={`px-3 py-2 rounded font-semibold cursor-pointer ${
+                        filterType === "journey_id"
+                            ? "bg-yellow-400 text-black"
+                            : "bg-zinc-800 text-white hover:bg-zinc-700"
+                    }`}
+                    onClick={() => handleFilterTypeChange("journey_id")}
+                >
+                    Single Journey
+                </button>
             </div>
             <div>
-                <label className="font-semibold text-white">
-                    {filterType === "journey_id" ? "Journey ID:" : "MMSI:"}
+                <label className="text-sm font-semibold text-white">
+                    {filterType === "journey_id" ? "Journey ID" : "MMSI"}
                     <select
-                        className="ml-2 p-1 rounded border"
+                        className="ml-2 p-1 rounded border cursor-pointer"
                         value={selectedId}
                         onChange={(e) => onSelectedIdChange(e.target.value)}
                     >

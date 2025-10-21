@@ -1,7 +1,8 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { getAtlanticAlerts, AtlanticAlert } from "@/utils/getAtlanticAlerts";
+import { AtlanticAlert } from "@/types";
+import { getAtlanticAlerts } from "@/utils/getAtlanticAlerts";
 import OverlayLoading from "./OverlayLoading";
 import { useRouter } from "next/navigation";
 
@@ -15,14 +16,13 @@ export default function NumberOceanAlerts() {
         async function fetchAlerts() {
             setLoading(true);
             const fetchedAlerts = await getAtlanticAlerts();
-            setAlerts(fetchedAlerts);
+            setAlerts(fetchedAlerts.alerts);
             setLoading(false);
         }
 
         fetchAlerts();
     }, []);
 
-    // Determine the dot color based on the number of storms
     const dotColor =
         alerts.length === 0
             ? "bg-blue-500" // Blue for 0 alerts

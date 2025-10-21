@@ -23,8 +23,8 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
 
     return (
         <ShipsPositionsProvider>
-            <MarineWeatherProvider>
-                <StormsProvider>
+            <StormsProvider>
+                <MarineWeatherProvider>
                     <DelayProvider>
                         <Navbar
                             onSidebarToggle={() => setIsSidebarOpen((v) => !v)}
@@ -42,8 +42,8 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
                             {children}
                         </div>
                     </DelayProvider>
-                </StormsProvider>
-            </MarineWeatherProvider>
+                </MarineWeatherProvider>
+            </StormsProvider>
         </ShipsPositionsProvider>
     );
 }
