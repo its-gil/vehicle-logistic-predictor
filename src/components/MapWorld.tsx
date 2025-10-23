@@ -1,7 +1,7 @@
 "use client";
 import { MapContainer, TileLayer, Polyline } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
-import { useShipsPositions } from "@/providers/ShipsPositionsProvider";
+import { useShipsPositions } from "@/providers/HistoricalRoutesProvider";
 import LoadingOverlay from "./OverlayLoading";
 import { ShipPoint } from "@/types";
 import { MapWorldProps } from "@/types/maps";

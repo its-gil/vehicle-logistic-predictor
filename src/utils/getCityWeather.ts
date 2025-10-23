@@ -1,11 +1,8 @@
 import fs from "fs";
 import path from "path";
+import { formatDate, formatToDDMMYYYY } from "./formatTimestamp";
 
-type CityWeatherResult = {
-    now: any;
-    tomorrow: any;
-    week: any;
-};
+import { CityWeatherResult } from "@/types";
 
 function getWeathercodeDescription(code: number | string): string {
     try {
@@ -21,15 +18,6 @@ function getWeathercodeDescription(code: number | string): string {
     } catch {
         return String(code);
     }
-}
-
-function formatTimeString(timeStr: string): string {
-    // Example input: "2024-09-01T15:00"
-    if (!timeStr.includes("T")) return timeStr;
-    const [date, time] = timeStr.split("T");
-    const [year, month, day] = date.split("-");
-    const [hour, minute] = time.split(":");
-    return `${day}.${month}.${year} ${hour}:${minute}`;
 }
 
 export async function getCityWeather(lat: number, lon: number): Promise<CityWeatherResult | null> {
@@ -53,7 +41,7 @@ export async function getCityWeather(lat: number, lon: number): Promise<CityWeat
             if (key === "weathercode") {
                 now[key] = getWeathercodeDescription(value as string | number);
             } else if (key === "time" && typeof value === "string" && value.includes("T")) {
-                now[key] = formatTimeString(value);
+                now[key] = formatDate(value);
             } else {
                 now[key] = value;
             }
@@ -86,7 +74,6 @@ export async function getCityWeather(lat: number, lon: number): Promise<CityWeat
         }
     }
 
-    // Optionally, add daily values for tomorrow and week if available
     if (data.daily && Array.isArray(data.daily.time)) {
         if (data.daily.time.length > 1) {
             const daily_tomorrow = Object.fromEntries(
@@ -108,6 +95,13 @@ export async function getCityWeather(lat: number, lon: number): Promise<CityWeat
     }
     if ("weathercode" in week) {
         week["weathercode"] = getWeathercodeDescription(week["weathercode"] as string | number);
+    }
+
+    if ("time" in tomorrow) {
+        tomorrow["time"] = formatToDDMMYYYY(tomorrow["time"] as string);
+    }
+    if ("time" in week) {
+        week["time"] = formatToDDMMYYYY(week["time"] as string);
     }
 
     return {

@@ -1,7 +1,6 @@
 "use client";
 import { useState } from "react";
 import dynamic from "next/dynamic";
-import { viewLegends } from "@/constants";
 import { journeysFilterType } from "@/types";
 
 const MapJourneys = dynamic(() => import("@/components/MapJourneys").then((mod) => mod.MapJourneys), { ssr: false });
@@ -17,7 +16,6 @@ export default function HistoricalRoutesPage() {
                 setJourneysFilterType={setFilterType}
                 selectedJourneyId={selectedId}
                 setSelectedJourneyId={setSelectedId}
-                legend={viewLegends.historicalRoutes}
             />
         </div>
     );

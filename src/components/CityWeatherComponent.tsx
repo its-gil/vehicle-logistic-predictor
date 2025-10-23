@@ -1,6 +1,6 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { WEATHER_MODES, portsWeatherUnits } from "@/constants";
-import { WeatherModeKey, PortConditions, CityWeatherResult } from "@/types";
+import { WeatherModeKey, PortConditions } from "@/types";
 import OverlayLoading from "./OverlayLoading";
 
 export default function CityWeatherComponent(props: PortConditions) {

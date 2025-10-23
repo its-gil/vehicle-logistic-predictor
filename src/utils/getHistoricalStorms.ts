@@ -1,9 +1,20 @@
+import fs from "fs";
+import path from "path";
 import { StormPoint } from "@/types";
 
 export default async function getHistoricalStorms(): Promise<StormPoint[]> {
-    const response = await fetch("/hurdat2_storm_data_1851_2025.csv");
-    const csvText = await response.text();
+    // Resolve the path to the CSV file in the public folder
+    const csvPath = path.join(process.cwd(), "public", "hurdat2_storm_data_1851_2025.csv");
 
+    // Check if the file exists
+    if (!fs.existsSync(csvPath)) {
+        throw new Error(`CSV file not found at ${csvPath}`);
+    }
+
+    // Read the CSV file
+    const csvText = fs.readFileSync(csvPath, "utf8");
+
+    // Parse the CSV data
     const lines = csvText.split("\n").filter((l) => l.trim());
     const header = lines[0].split(",");
 

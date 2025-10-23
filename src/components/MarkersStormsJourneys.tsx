@@ -17,8 +17,13 @@ export default function MarkersStormsJourneys(props: MarkersStormsProps) {
                     <Tooltip direction="top" offset={[0, -5]} opacity={1} permanent={false}>
                         <div>
                             <div className="font-bold text-red-600">{storm.name}</div>
-                            <div>Wind: {storm.intensity} km/h</div>
+                            <div>Storm Name: {storm.storm_name}</div>
                             <div>Time: {storm.datetime}</div>
+                            <div>Max Sustained Wind: {storm.max_sustained_wind} km/h</div>
+                            <div>Latitude: {storm.lat}</div>
+                            <div>Longitude: {storm.lon}</div>
+                            <div>System Status: {storm.system_status}</div>
+                            <div>System Status Description: {storm.system_status_desc}</div>
                         </div>
                     </Tooltip>
                 </Marker>

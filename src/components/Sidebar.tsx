@@ -7,7 +7,6 @@ import {
     Settings,
     LogOut,
     History,
-    AlertTriangle,
     CloudLightning,
     Anchor,
     Waves,

@@ -1,7 +1,6 @@
 "use client";
 
 import { useStorms } from "@/providers/StormsProvider";
-import { viewLegends } from "@/constants";
 import dynamic from "next/dynamic"; // Import dynamic for client-side rendering
 import { formatTimestamp } from "@/utils/formatTimestamp";
 
@@ -18,7 +17,6 @@ export default function Home() {
                 noaaPoints={noaaPoints || []}
                 arrows={arrows || []}
                 regions={regions || []}
-                legend={viewLegends.dashboard}
                 timestamp={formatTimestamp(timestamp)}
                 loading={loadingStorms}
             />

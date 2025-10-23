@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useEffect, useState } from "react";
-import { getMarineWeather } from "@/utils/getMarineWeather";
 import { MarineWeatherResult, MarineWeatherContextType } from "@/types";
+import { REPEATING_COORDINATES } from "@/constants/repeatingCoordinates";
 
 const MarineWeatherContext = createContext<MarineWeatherContextType>({
     marineWeather: [],
@@ -14,33 +14,27 @@ export function MarineWeatherProvider({ children }: { children: React.ReactNode 
 
     useEffect(() => {
         async function fetchMarineWeatherGeneral() {
-            console.log("Fetching marine weather data...");
             setLoadingMarineWeather(true);
+            console.log("Fetching marine weather data...");
+            const results: MarineWeatherResult[] = [];
             try {
-                const res = await fetch("/api/repeating-coordinates");
-                const data = await res.json();
-
-                if (data.coordinates) {
-                    const results: MarineWeatherResult[] = [];
-
-                    // Fetch marine weather for each coordinate
-                    for (const { lat, lon } of data.coordinates) {
-                        // eslint-disable-next-line no-await-in-loop
-                        const weather = await getMarineWeather(lat, lon);
-                        if (weather) {
-                            results.push(weather);
-                        }
+                // Fetch marine weather for each coordinate using the API
+                for (const { lat, lon } of REPEATING_COORDINATES) {
+                    // eslint-disable-next-line no-await-in-loop
+                    const response = await fetch(`/api/marine-weather?lat=${lat}&lon=${lon}`);
+                    if (!response.ok) {
+                        throw new Error(`Failed to fetch marine weather for lat=${lat}, lon=${lon}`);
                     }
-
-                    setMarineWeather(results);
+                    const weather: MarineWeatherResult = await response.json();
+                    results.push(weather);
                 }
+                setMarineWeather(results);
+                console.log("Fetched a number of marine weather points:", results.length);
             } catch (error) {
                 console.error("Error fetching marine weather data:", error);
             }
-            console.log("Marine weather data fetched:", marineWeather);
             setLoadingMarineWeather(false);
         }
-
         fetchMarineWeatherGeneral();
     }, []);
 

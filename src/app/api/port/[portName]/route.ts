@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
 import { cityPortList } from "@/constants";
 
-export async function GET(req: Request, { params }: { params: { portName: string } }) {
+export async function GET(req: Request, context: { params: { portName: string } }) {
+    const { params } = context;
     const { portName } = params;
 
     const port = cityPortList.find((p) => {

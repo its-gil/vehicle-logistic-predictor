@@ -1,13 +1,12 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { AtlanticAlert } from "@/types";
-import { getAtlanticAlerts } from "@/utils/getAtlanticAlerts";
+import { AlertsResponse } from "@/types/alerts";
 import OverlayLoading from "./OverlayLoading";
 import { useRouter } from "next/navigation";
 
 export default function NumberOceanAlerts() {
-    const [alerts, setAlerts] = useState<AtlanticAlert[]>([]);
+    const [alerts, setAlerts] = useState<AlertsResponse["alerts"]>([]); // Use the correct type for alerts
     const [loading, setLoading] = useState<boolean>(true);
 
     const router = useRouter();
@@ -15,9 +14,17 @@ export default function NumberOceanAlerts() {
     useEffect(() => {
         async function fetchAlerts() {
             setLoading(true);
-            const fetchedAlerts = await getAtlanticAlerts();
-            setAlerts(fetchedAlerts.alerts);
-            setLoading(false);
+            try {
+                const res = await fetch("/api/marine-alerts");
+                if (!res.ok) throw new Error(`Failed to fetch marine alerts: ${res.status}`);
+                const fetchedAlerts: AlertsResponse = await res.json();
+                setAlerts(fetchedAlerts.alerts || []);
+            } catch (err) {
+                console.error("Error fetching marine alerts:", err);
+                setAlerts([]);
+            } finally {
+                setLoading(false);
+            }
         }
 
         fetchAlerts();

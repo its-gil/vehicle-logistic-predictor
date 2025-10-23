@@ -11,21 +11,29 @@ export function ShipsPositionsProvider({ children }: { children: React.ReactNode
     const [loadingShipsPositions, setLoadingShipsPositions] = useState(true);
 
     console.log("Looking for ships positions");
+
     useEffect(() => {
-        fetch("/api/ships-positions")
-            .then((res) => res.json())
-            .then((data) => {
-                const points = data.map((row: any) => ({
-                    mmsi: row.mmsi,
-                    journey_id: row.journey_id,
-                    lat: parseFloat(row.lat),
-                    lon: parseFloat(row.lon),
-                    date: row.date,
-                }));
-                setShipsPositions(points);
+        async function fetchHistoricalRoutes() {
+            try {
+                setLoadingShipsPositions(true);
+
+                const response = await fetch("/api/historical-routes");
+                if (!response.ok) {
+                    throw new Error("Failed to fetch historical routes");
+                }
+
+                const data: ShipPoint[] = await response.json();
+
+                setShipsPositions(data);
+            } catch (error) {
+                console.error("Error fetching historical routes:", error);
+                setShipsPositions(null);
+            } finally {
                 setLoadingShipsPositions(false);
-            })
-            .catch(() => setLoadingShipsPositions(false));
+            }
+        }
+
+        fetchHistoricalRoutes();
     }, []);
 
     return (

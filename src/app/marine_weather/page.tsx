@@ -7,7 +7,6 @@ import MarineWeatherComponent from "@/components/MarineWeatherComponent";
 import FilterAlertsWeather from "@/components/FilterAlertsWeather";
 import { DashboardMode } from "@/types/ports";
 import { useEffect, useState } from "react";
-import { getAtlanticAlerts } from "@/utils/getAtlanticAlerts";
 import { AlertsResponse } from "@/types";
 import AlertsComponent from "@/components/AlertsComponent";
 
@@ -27,8 +26,17 @@ export default function MarineWeatherPage() {
 
     useEffect(() => {
         async function fetchAlerts() {
-            const { localtime, alerts } = await getAtlanticAlerts();
-            setAtlanticAlertsResponse({ localtime, alerts });
+            let data: AlertsResponse = { localtime: "", alerts: [] };
+            try {
+                const res = await fetch("/api/marine-alerts");
+                if (!res.ok) {
+                    throw new Error(`Failed to fetch /api/marine-alerts: ${res.status}`);
+                }
+                data = await res.json();
+            } catch (error) {
+                console.error("Failed to fetch Marine alerts:", error);
+            }
+            setAtlanticAlertsResponse({ localtime: data.localtime, alerts: data.alerts });
             setLoadingAtlanticAlerts(false);
         }
         fetchAlerts();
@@ -39,8 +47,8 @@ export default function MarineWeatherPage() {
             const calculatedAverages: Record<string, number | null> = {};
             marineWeatherFeatureNames.forEach((feature) => {
                 const values = marineWeather
-                    .map((data: any) => data[feature])
-                    .filter((value: any) => value !== null && value !== undefined);
+                    .filter((data: any) => data && data[feature] !== null && data[feature] !== undefined) // Ensure valid data
+                    .map((data: any) => data[feature]);
                 const average =
                     values.length > 0
                         ? values.reduce((sum: number, value: number) => sum + value, 0) / values.length
@@ -86,7 +94,6 @@ export default function MarineWeatherPage() {
             <div className="w-3/5 flex-1 flex flex-col h-full min-h-0 justify-center items-center bg-black">
                 <MapMarineWeather
                     marineWeather={marineWeather}
-                    legend={viewLegends.marineWeather}
                     timestamp={formatTimestamp(timestamp)}
                     loading={loadingMarineWeather}
                 />

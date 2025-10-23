@@ -1,7 +1,4 @@
-import { NextResponse } from "next/server";
 import { haversineDistanceNm } from "@/utils/calculateHaversineDistance";
-import { getActiveStorms } from "@/utils/getActiveStorms";
-import { getMarineWeather } from "@/utils/getMarineWeather";
 import { calculateMarineFeatures } from "@/utils/calculateMarineFeatures";
 import { PrepareModelDataInput, PrepareModelDataOutput } from "@/types";
 
@@ -11,6 +8,8 @@ export async function prepareModelData({
     lat2,
     lon2,
     course,
+    activeStorms,
+    marineWeather,
 }: PrepareModelDataInput): Promise<PrepareModelDataOutput> {
     try {
         if (isNaN(lat1) || isNaN(lon1) || isNaN(lat2) || isNaN(lon2) || isNaN(course)) {
@@ -22,15 +21,12 @@ export async function prepareModelData({
 
         console.log(`Distance to destination: ${distanceToDestinationNm.toFixed(2)} NM`);
 
-        // Get active storms
-        const activeStorms = await getActiveStorms();
-
         // Find the closest storm to the first pair of coordinates
         let closestStorm = null;
         let minDistanceToStormNm = 99999;
 
         for (const storm of activeStorms) {
-            const distanceToStormNm = haversineDistanceNm(lat1, lon1, storm.latitudeNumeric, storm.longitudeNumeric);
+            const distanceToStormNm = haversineDistanceNm(lat1, lon1, storm.lat, storm.lon);
             if (distanceToStormNm < minDistanceToStormNm) {
                 minDistanceToStormNm = distanceToStormNm;
                 closestStorm = storm;
@@ -41,15 +37,8 @@ export async function prepareModelData({
             `Closest storm is ${closestStorm?.name || "Unknown"} at a distance of ${minDistanceToStormNm.toFixed(2)} NM`
         );
 
-        // Get the intensity of the closest storm
-        const stormWind = closestStorm?.intensity || "0";
-
-        // Fetch marine weather for the first coordinate
-        const marineWeather = await getMarineWeather(lat1, lon1);
-
-        if (!marineWeather) {
-            throw new Error("Failed to fetch marine weather data for the given coordinates.");
-        }
+        // Get the intensity of the closest storm (always a string)
+        const stormWind = (closestStorm?.intensity ?? "0").toString();
 
         // Add the ship's course to the marine weather data
         const marineWeatherWithCourse = { ...marineWeather, course };

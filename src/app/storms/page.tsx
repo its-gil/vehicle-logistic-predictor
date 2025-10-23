@@ -1,11 +1,10 @@
 "use client";
+
 import { useState, useEffect } from "react";
 import dynamic from "next/dynamic";
 import { StormMapMode } from "@/types";
 import { useStorms } from "@/providers/StormsProvider";
-import { viewLegends } from "@/constants/";
 import { formatTimestamp } from "@/utils/formatTimestamp";
-import getHistoricalStorms from "@/utils/getHistoricalStorms";
 
 const MapStorms = dynamic(() => import("@/components/MapStorms").then((mod) => mod.MapStorms), { ssr: false });
 
@@ -19,9 +18,19 @@ export default function StormsPage() {
 
     useEffect(() => {
         async function fetchHeatmapPoints() {
-            const points = await getHistoricalStorms();
-            setHeatmapPoints(points);
-            setHeatmapLoaded(true);
+            try {
+                const response = await fetch("/api/historical-storms");
+                if (!response.ok) {
+                    throw new Error("Failed to fetch historical storms");
+                }
+
+                const points = await response.json();
+                setHeatmapPoints(points);
+                setHeatmapLoaded(true);
+            } catch (error) {
+                console.error("Error fetching heatmap points:", error);
+                setHeatmapPoints([]);
+            }
         }
 
         fetchHeatmapPoints();
@@ -43,7 +52,6 @@ export default function StormsPage() {
                 noaaPoints={noaaPoints}
                 arrows={arrows}
                 regions={regions}
-                legend={viewLegends.storms}
                 timestamp={formatTimestamp(timestamp)}
                 stormsLoading={stormsMapLoading}
             />

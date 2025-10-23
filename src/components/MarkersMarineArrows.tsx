@@ -7,14 +7,22 @@ export default function MarkersMarineArrows({ data }: { data?: MarineWeatherResu
     const zoom = map.getZoom();
     const getArrowWeight = () => Math.max(1, 2 - zoom * 0.1);
 
+    console.log("Rendering marine arrows with data:", data);
+
     return (
         <>
             {data?.map((mw, idx) => {
-                const speed = mw.wind_speed_10m ?? 0;
-                const direction = mw.wind_direction_10m ?? 0;
+                if (!mw) return null;
+
+                const speed = mw.ocean_current_velocity ?? 0;
+                const direction = mw.ocean_current_direction ?? 0;
+
+                // Skip rendering if speed or direction is invalid
                 if (!speed || !direction) return null;
+
                 const arrowLines = getArrowCoords(mw.lat, mw.lon, direction, speed);
                 const color = speed > 30 ? "red" : speed > 15 ? "orange" : "green";
+
                 return arrowLines.map((line, i) => (
                     <Polyline
                         key={`marine-${idx}-${i}`}

@@ -5,14 +5,14 @@ import OverlayLoading from "./OverlayLoading";
 import OverlayLastUpdate from "./OverlayLastUpdate";
 import OverlayLegend from "./OverlayLegend";
 import MarkersMarineArrows from "./MarkersMarineArrows";
-import MarkersShipDestination from "./MarkerShip";
 
 import { MapType } from "@/types";
+import { viewLegends } from "@/constants/legendConstants";
 import MarkerDestination from "./MarkerDestination";
 import MarkerShip from "./MarkerShip";
 
 export function MapMarineWeather(props: MapType) {
-    const { marineWeather, legend, timestamp, loading } = props;
+    const { marineWeather, timestamp, loading } = props;
 
     return (
         <div className="relative w-full h-full">
@@ -22,7 +22,7 @@ export function MapMarineWeather(props: MapType) {
                 <MarkerShip />
                 <MarkerDestination />
                 <OverlayLastUpdate timestamp={timestamp} />
-                <OverlayLegend items={legend} />
+                <OverlayLegend items={viewLegends.marineWeather} />
             </MapWorld>
         </div>
     );

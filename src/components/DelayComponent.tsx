@@ -5,14 +5,13 @@ import { cityPortList } from "@/constants";
 import { useDelay } from "@/providers/DelayProvider";
 
 export default function DelayDashboard() {
-    const [targetDelay, setTargetDelay] = useState<string>("-");
     const [localLat, setLocalLat] = useState<string>("");
     const [localLon, setLocalLon] = useState<string>("");
     const [localCourse, setLocalCourse] = useState<string>("");
     const [localDestination, setLocalDestination] = useState<string>(cityPortList[0].name);
     const [localApiError, setLocalApiError] = useState<string | null>(null);
 
-    const { setDelayInfo } = useDelay();
+    const { delayInfo, setDelayInfo } = useDelay();
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -25,6 +24,20 @@ export default function DelayDashboard() {
         }
 
         try {
+            const storms = await fetch("/api/storms");
+            if (!storms.ok) {
+                throw new Error("Failed to fetch storms data");
+            }
+            const stormsData = await storms.json();
+
+            // Fetch marine weather for the first coordinate
+            const marineWeather = await fetch(`/api/marine-weather?lat=${localLat}&lon=${localLon}`);
+            if (!marineWeather.ok) {
+                throw new Error("Failed to fetch marine weather data for the given coordinates.");
+            }
+            const marineWeatherData = await marineWeather.json();
+
+            // Call delay prediction API
             const response = await fetch(
                 `/api/delay-prediction?lat1=${localLat}&lon1=${localLon}&lat2=${selectedPort.lat}&lon2=${selectedPort.lon}&course=${localCourse}`
             );
@@ -34,7 +47,7 @@ export default function DelayDashboard() {
                 const shipCoordinates = { lat: parseFloat(localLat), lon: parseFloat(localLon) };
                 const destinationCoordinates = { lat: selectedPort.lat, lon: selectedPort.lon };
                 const course = localCourse;
-                const delay = data.target_delay || "-";
+                const delay = data.target_delay;
 
                 setDelayInfo({
                     shipCoordinates,
@@ -43,7 +56,6 @@ export default function DelayDashboard() {
                     delay,
                 });
 
-                setTargetDelay(delay);
                 setLocalApiError(null);
             } else {
                 setLocalApiError(data.error || "Failed to fetch delay prediction.");
@@ -108,22 +120,20 @@ export default function DelayDashboard() {
                     Submit
                 </button>
             </form>
-            {targetDelay && (
-                <div className="text-white rounded flex flex-col justify-end">
-                    <p className="text-9xl">
-                        {targetDelay}
-                        <span className="text-4xl"> h</span>
-                    </p>
-                </div>
-            )}
-            <div className="flex flex-col bg-zinc-900 text-white rounded-lg shadow-lg justify-between">
-                {localApiError && (
+            <div className="text-white rounded flex flex-col justify-end">
+                <p className="text-9xl">
+                    {delayInfo?.delay ?? "-"}
+                    <span className="text-4xl"> h</span>
+                </p>
+            </div>
+            {localApiError && (
+                <div className="flex flex-col bg-zinc-900 text-white rounded-lg shadow-lg justify-between">
                     <div className="mt-4 p-3 bg-red-700 text-white rounded text-sm">
                         <h4 className="font-bold">Error:</h4>
                         <p>{localApiError}</p>
                     </div>
-                )}
-            </div>
+                </div>
+            )}
         </div>
     );
 }

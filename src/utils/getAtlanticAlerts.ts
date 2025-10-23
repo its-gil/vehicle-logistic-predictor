@@ -1,7 +1,7 @@
 const atlanticAlertsUrl = "https://api.weather.gov/alerts/active/region/AT";
 
 import { AlertsResponse } from "@/types";
-import { formatDate } from "./formatDate";
+import { formatDate } from "./formatTimestamp";
 
 export async function getAtlanticAlerts(): Promise<AlertsResponse> {
     try {

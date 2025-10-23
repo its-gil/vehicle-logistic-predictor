@@ -9,6 +9,7 @@ export default function MarkersPorts() {
 
     let destination = null;
     const destinationCoordinates = delayInfo?.destinationCoordinates;
+
     if (destinationCoordinates) {
         destination = cityPortList.find(
             (port) => port.lat === destinationCoordinates.lat && port.lon === destinationCoordinates.lon

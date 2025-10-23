@@ -1,6 +1,7 @@
 import { MarkersStormsProps } from "@/types/maps";
 import { useMapIcons } from "@/hooks/useMapIcons";
 import { Marker, Tooltip } from "react-leaflet";
+import { formatDate } from "@/utils/formatTimestamp";
 
 export default function MarkersStorms(props: MarkersStormsProps) {
     const { storms } = props;
@@ -37,7 +38,7 @@ export default function MarkersStorms(props: MarkersStormsProps) {
                                     &deg;
                                 </div>
                                 <div>
-                                    <span className="font-semibold">Last Update:</span> {storm.lastUpdate}
+                                    <span className="font-semibold">Last Update:</span> {formatDate(storm.lastUpdate)}
                                 </div>
                             </div>
                         </Tooltip>

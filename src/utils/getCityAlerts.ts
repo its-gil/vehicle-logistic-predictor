@@ -2,7 +2,7 @@ import { AlertsResponse } from "@/types";
 
 const WEATHERAPI_ALERTS_API_KEY = process.env.WEATHERAPI_ALERTS_API_KEY;
 
-import { formatDate } from "./formatDate";
+import { formatDate } from "./formatTimestamp";
 
 export async function getCityAlerts(lat: number, lon: number): Promise<AlertsResponse> {
     try {

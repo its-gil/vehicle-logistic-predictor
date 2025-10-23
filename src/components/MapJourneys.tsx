@@ -1,4 +1,4 @@
-import React, { useMemo, useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import "leaflet/dist/leaflet.css";
 
 import MapWorld from "./MapWorld";
@@ -6,19 +6,19 @@ import OverlayLoading from "./OverlayLoading";
 import OverlayLegend from "./OverlayLegend";
 import OverlayJourneyFilter from "./OverlayJourneyFilter";
 
-import { useShipsPositions } from "@/providers/ShipsPositionsProvider";
+import { useShipsPositions } from "@/providers/HistoricalRoutesProvider";
 import { MapType, ShipPoint, StormPoint } from "@/types";
 import { viewLegends } from "@/constants";
 import MarkersJourneys from "./MarkersJourneys";
 import { getJourneyStartEnd } from "@/utils/getJourneyStartEnd";
-import getHistoricalStorms from "@/utils/getHistoricalStorms";
 import MarkersStormsJourneys from "./MarkersStormsJourneys";
 import NumberDaysHistoricalJourney from "./NumberDaysHistoricalJourney";
 
 export function MapJourneys(props: MapType) {
-    const { journeysFilterType, setJourneysFilterType, selectedJourneyId, setSelectedJourneyId, legend } = props;
+    const { journeysFilterType, setJourneysFilterType, selectedJourneyId, setSelectedJourneyId } = props;
     const { shipsPositions, loadingShipsPositions } = useShipsPositions();
     const [stormsInJourney, setStormsInJourney] = useState<StormPoint[]>([]);
+    const [loadingStormsInJourney, setLoadingStormsInJourney] = useState<boolean>(true);
 
     const [journeyIds, setJourneyIds] = useState<string[]>([]);
     const [mmsis, setMmsis] = useState<string[]>([]);
@@ -45,30 +45,41 @@ export function MapJourneys(props: MapType) {
     }, [loadingShipsPositions, journeysFilterType, selectedJourneyId]);
 
     const { journeyStart, journeyEnd, durationInDays } = getJourneyStartEnd(currentJourneyPoints);
+    let formattedJourneyStart = journeyStart?.toISOString().split("T")[0] || "";
+    let formattedJourneyEnd = journeyEnd?.toISOString().split("T")[0] || "";
 
     useEffect(() => {
         async function fetchStorms() {
-            if (!journeyStart || !journeyEnd) {
-                setStormsInJourney([]);
-                return;
+            if (journeysFilterType === "journey_id") {
+                if (!formattedJourneyStart || !formattedJourneyEnd) {
+                    setStormsInJourney([]);
+                    return;
+                }
+                try {
+                    const response = await fetch(
+                        `/api/historical-routes-storms?start_date=${formattedJourneyStart}&end_date=${formattedJourneyEnd}`
+                    );
+                    if (!response.ok) {
+                        throw new Error("Failed to fetch storms");
+                    }
+                    const filteredStorms: StormPoint[] = await response.json();
+
+                    setStormsInJourney(filteredStorms);
+                } catch (error) {
+                    console.error("Error fetching storms:", error);
+                    setStormsInJourney([]);
+                }
             }
-
-            const allStorms = await getHistoricalStorms();
-            const filteredStorms = allStorms.filter((storm) => {
-                const stormTime = new Date(storm.datetime || -1);
-                return stormTime >= journeyStart && stormTime <= journeyEnd;
-            });
-
-            setStormsInJourney(filteredStorms);
+            setLoadingStormsInJourney(false);
         }
 
         fetchStorms();
-    }, [journeyStart, journeyEnd]);
+    }, [journeysFilterType, selectedJourneyId, formattedJourneyStart, formattedJourneyEnd]);
 
     return (
         <div className="relative w-full h-full">
             <MapWorld zoom={4} center={[30, -30]}>
-                {loadingShipsPositions && <OverlayLoading />}
+                {(loadingShipsPositions || loadingStormsInJourney) && <OverlayLoading />}
                 <div className="absolute top-3 left-12 z-502 pointer-events-auto">
                     <OverlayJourneyFilter
                         journeyIds={journeyIds}

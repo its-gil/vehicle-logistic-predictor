@@ -16,9 +16,10 @@ import MarkersPotentialStorms from "./MarkersPotentialStorms";
 import MarkersStorms from "./MarkersStorms";
 import MarkerDestination from "./MarkerDestination";
 import MarkerShip from "./MarkerShip";
+import { viewLegends } from "@/constants/legendConstants";
 
 export function MapDashboard(props: MapType) {
-    const { storms, noaaPoints, arrows, regions, legend, timestamp, loading } = props;
+    const { storms, noaaPoints, arrows, regions, timestamp, loading } = props;
 
     const { delayInfo } = useDelay();
     const submittedDestinationCoordinates = delayInfo?.destinationCoordinates;
@@ -38,7 +39,7 @@ export function MapDashboard(props: MapType) {
                     />
                 </div>
                 {loading && <OverlayLoading />}
-                <OverlayLegend items={legend} />
+                <OverlayLegend items={viewLegends.dashboard} />
                 <OverlayLastUpdate timestamp={timestamp} />
                 <MarkersPotentialStorms noaaPoints={noaaPoints} arrows={arrows} regions={regions} />
                 <MarkersStorms storms={storms} />

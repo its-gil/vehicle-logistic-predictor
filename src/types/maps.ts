@@ -26,7 +26,6 @@ export type MapType = {
     setJourneysFilterType?: (type: journeysFilterType) => void;
     selectedJourneyId?: string;
     setSelectedJourneyId?: (id: string) => void;
-    legend: LegendItem[];
     timestamp?: string;
     stormsLoading?: boolean;
     loading?: boolean;

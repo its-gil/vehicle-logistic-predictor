@@ -1,6 +1,7 @@
 import React, { useMemo } from "react";
 import { Polyline, CircleMarker, Tooltip } from "react-leaflet";
 import { MarkersJourneysProps } from "@/types/maps";
+import { formatDate } from "@/utils/formatTimestamp";
 
 export default function MarkersJourneys(props: MarkersJourneysProps) {
     const { shipPoints, journeysFilterType } = props;
@@ -15,8 +16,6 @@ export default function MarkersJourneys(props: MarkersJourneysProps) {
         }
         grouped[key].push(point);
     });
-
-    console.log("MarkersJourneys grouped:", grouped);
 
     // Generate a consistent color mapping for each key (journey_id or mmsi)
     const colorMapping = useMemo(() => {
@@ -65,12 +64,12 @@ export default function MarkersJourneys(props: MarkersJourneysProps) {
                         >
                             <Tooltip direction="top" offset={[0, -5]} opacity={1} permanent={false}>
                                 <div>
-                                    <div>Timestamp: {p.date}</div>
+                                    <div>MMSI: {p.mmsi}</div>
+                                    <div>Journey: {p.journey_id}</div>
+                                    <div>Timestamp: {formatDate(p.date)}</div>
                                     <div>
                                         Lat: {p.lat}, Lon: {p.lon}
                                     </div>
-                                    <div>MMSI: {p.mmsi}</div>
-                                    <div>Journey: {p.journey_id}</div>
                                 </div>
                             </Tooltip>
                         </CircleMarker>

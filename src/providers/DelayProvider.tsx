@@ -2,18 +2,7 @@
 
 import React, { createContext, useContext, useState, useEffect } from "react";
 
-type DelayInfo = {
-    shipCoordinates: { lat: number | null; lon: number | null };
-    destinationCoordinates: { lat: number | null; lon: number | null };
-    course: string;
-    delay: string;
-};
-
-type DelayContextType = {
-    delayInfo: DelayInfo | null;
-    setDelayInfo: (info: DelayInfo) => void;
-    rotatedShipIcon: L.DivIcon | null;
-};
+import { DelayInfo, DelayContextType } from "@/types";
 
 const DelayContext = createContext<DelayContextType | undefined>(undefined);
 

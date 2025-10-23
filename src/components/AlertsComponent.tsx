@@ -1,5 +1,6 @@
 import { AlertsResponse } from "@/types";
 import OverlayLoading from "./OverlayLoading";
+import { formatDate } from "@/utils/formatTimestamp";
 
 export default function AlertsComponent(props: AlertsResponse) {
     const { localtime, alerts, loading } = props;
@@ -22,7 +23,9 @@ export default function AlertsComponent(props: AlertsResponse) {
                         <div className="font-semibold text-lg text-white">
                             {alerts.length} alert{alerts.length !== 1 ? "s" : ""}
                         </div>
-                        {localtime ? <div className="text-zinc-400 text-sm font-medium">{localtime}</div> : null}
+                        {localtime ? (
+                            <div className="text-zinc-400 text-sm font-medium">{formatDate(localtime)}</div>
+                        ) : null}
                     </div>
                     <div className="flex flex-col space-y-4">
                         {alerts?.map((alert, idx) => (

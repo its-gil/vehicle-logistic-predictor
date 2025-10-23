@@ -1,5 +1,3 @@
-import { CityAlerts } from "./alerts";
-
 export type Port = {
     name: string;
     lat: number;
@@ -16,7 +14,6 @@ export type CityWeatherResult = {
 export type PortConditions = {
     port: Port | null;
     portWeather?: CityWeatherResult | null;
-    cityAlerts?: CityAlerts | null;
     loading?: boolean;
 };
 

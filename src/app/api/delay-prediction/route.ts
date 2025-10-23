@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { prepareModelData } from "@/utils/prepareModelData";
 import { spawn } from "child_process";
 import path from "path";
+import { MarineWeatherInput, StormPoint } from "@/types";
 
 export async function GET(req: Request) {
     try {
@@ -12,6 +13,8 @@ export async function GET(req: Request) {
         const lat2 = parseFloat(searchParams.get("lat2") || "");
         const lon2 = parseFloat(searchParams.get("lon2") || "");
         const course = parseFloat(searchParams.get("course") || "");
+        const activeStormsParam = searchParams.get("activeStorms");
+        const marineWeatherParam = searchParams.get("marineWeather");
 
         if (isNaN(lat1) || isNaN(lon1) || isNaN(lat2) || isNaN(lon2) || isNaN(course)) {
             return NextResponse.json(
@@ -20,8 +23,36 @@ export async function GET(req: Request) {
             );
         }
 
-        // Prepare model data
-        const modelData = await prepareModelData({ lat1, lon1, lat2, lon2, course });
+        let activeStorms: StormPoint[] = [];
+        if (activeStormsParam) {
+            try {
+                activeStorms = JSON.parse(activeStormsParam) as StormPoint[];
+            } catch (err) {
+                return NextResponse.json({ error: "Invalid activeStorms JSON" }, { status: 400 });
+            }
+        }
+
+        let marineWeather: MarineWeatherInput[] = [];
+        if (marineWeatherParam) {
+            try {
+                marineWeather = JSON.parse(marineWeatherParam) as MarineWeatherInput[];
+            } catch (err) {
+                return NextResponse.json({ error: "Invalid marineWeather JSON" }, { status: 400 });
+            }
+        }
+
+        const marineWeatherInput: MarineWeatherInput =
+            marineWeather.length > 0 ? marineWeather[0] : ({} as MarineWeatherInput);
+
+        const modelData = await prepareModelData({
+            lat1,
+            lon1,
+            lat2,
+            lon2,
+            course,
+            activeStorms,
+            marineWeather: marineWeatherInput,
+        });
 
         // Extract features in the required order for the model
         const features = [
