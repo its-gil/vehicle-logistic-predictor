@@ -1,9 +1,9 @@
 // Helper to draw wind arrows with arrowhead
 export function getArrowCoords(lat: number, lon: number, direction: number, speed: number): [number, number][][] {
-    const length = Math.min(2 + speed * 0.5, 10);
+    const length = Math.min(2 + speed * 5, 5);
     const rad = (direction * Math.PI) / 180;
-    const lat2 = lat + length * Math.cos(rad) * 0.1;
-    const lon2 = lon + length * Math.sin(rad) * 0.1;
+    const lat2 = lat + length * Math.cos(rad) * 0.2;
+    const lon2 = lon + length * Math.sin(rad) * 0.2;
 
     const arrowHeadLength = 0.4;
     const arrowAngle = 30 * (Math.PI / 180);

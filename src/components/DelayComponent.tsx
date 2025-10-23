@@ -8,7 +8,7 @@ export default function DelayDashboard() {
     const [localLat, setLocalLat] = useState<string>("");
     const [localLon, setLocalLon] = useState<string>("");
     const [localCourse, setLocalCourse] = useState<string>("");
-    const [localDestination, setLocalDestination] = useState<string>(cityPortList[0].name);
+    const [localDestination, setLocalDestination] = useState<string>(cityPortList[12].name);
     const [localApiError, setLocalApiError] = useState<string | null>(null);
 
     const { delayInfo, setDelayInfo } = useDelay();
@@ -107,11 +107,14 @@ export default function DelayDashboard() {
                     onChange={(e) => setLocalDestination(e.target.value)}
                     className="p-2 rounded bg-zinc-800 border border-zinc-700 text-white text-sm"
                 >
-                    {cityPortList.map((port) => (
-                        <option key={port.name} value={port.name}>
-                            {port.name}
-                        </option>
-                    ))}
+                    {cityPortList
+                        .slice() // Create a shallow copy to avoid mutating the original array
+                        .sort((a, b) => a.name.localeCompare(b.name)) // Sort alphabetically by port name
+                        .map((port) => (
+                            <option key={port.name} value={port.name}>
+                                {port.name}
+                            </option>
+                        ))}
                 </select>
                 <button
                     type="submit"
