@@ -3,6 +3,7 @@
 import React, { useState } from "react";
 import { cityPortList } from "@/constants";
 import { useDelay } from "@/providers/DelayProvider";
+import { useStorms } from "@/providers/StormsProvider";
 
 export default function DelayDashboard() {
     const [localLat, setLocalLat] = useState<string>("");
@@ -11,6 +12,7 @@ export default function DelayDashboard() {
     const [localDestination, setLocalDestination] = useState<string>(cityPortList[12].name);
     const [localApiError, setLocalApiError] = useState<string | null>(null);
 
+    const { atlanticStorms } = useStorms();
     const { delayInfo, setDelayInfo } = useDelay();
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -24,12 +26,6 @@ export default function DelayDashboard() {
         }
 
         try {
-            const storms = await fetch("/api/storms");
-            if (!storms.ok) {
-                throw new Error("Failed to fetch storms data");
-            }
-            const stormsData = await storms.json();
-
             // Fetch marine weather for the first coordinate
             const marineWeather = await fetch(`/api/marine-weather?lat=${localLat}&lon=${localLon}`);
             if (!marineWeather.ok) {
@@ -39,7 +35,9 @@ export default function DelayDashboard() {
 
             // Call delay prediction API
             const response = await fetch(
-                `/api/delay-prediction?lat1=${localLat}&lon1=${localLon}&lat2=${selectedPort.lat}&lon2=${selectedPort.lon}&course=${localCourse}`
+                `/api/delay-prediction?lat1=${localLat}&lon1=${localLon}&lat2=${selectedPort.lat}&lon2=${selectedPort.lon}&course=${localCourse}` +
+                    `&activeStorms=${encodeURIComponent(JSON.stringify(atlanticStorms))}` +
+                    `&marineWeather=${encodeURIComponent(JSON.stringify(marineWeatherData))}`
             );
             const data = await response.json();
 

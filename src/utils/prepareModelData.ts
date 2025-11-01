@@ -19,23 +19,21 @@ export async function prepareModelData({
         // Calculate distance between the two points in nautical miles
         const distanceToDestinationNm = haversineDistanceNm(lat1, lon1, lat2, lon2);
 
-        console.log(`Distance to destination: ${distanceToDestinationNm.toFixed(2)} NM`);
-
         // Find the closest storm to the first pair of coordinates
         let closestStorm = null;
         let minDistanceToStormNm = 99999;
 
         for (const storm of activeStorms) {
-            const distanceToStormNm = haversineDistanceNm(lat1, lon1, storm.lat, storm.lon);
+            if (storm.latitudeNumeric == null || storm.longitudeNumeric == null) {
+                console.warn(`Skipping storm ${storm.name} due to missing coordinates`);
+                continue;
+            }
+            const distanceToStormNm = haversineDistanceNm(lat1, lon1, storm.latitudeNumeric, storm.longitudeNumeric);
             if (distanceToStormNm < minDistanceToStormNm) {
                 minDistanceToStormNm = distanceToStormNm;
                 closestStorm = storm;
             }
         }
-
-        console.log(
-            `Closest storm is ${closestStorm?.name || "Unknown"} at a distance of ${minDistanceToStormNm.toFixed(2)} NM`
-        );
 
         // Get the intensity of the closest storm (always a string)
         const stormWind = (closestStorm?.intensity ?? "0").toString();
