@@ -1,16 +1,6 @@
 import React from "react";
 import Link from "next/link";
-import {
-    LayoutDashboard,
-    MessageCircle,
-    Table2,
-    Settings,
-    LogOut,
-    History,
-    CloudLightning,
-    Anchor,
-    Waves,
-} from "lucide-react";
+import { LayoutDashboard, MessageCircle, Table2, LogOut, History, CloudLightning, Anchor, Waves } from "lucide-react";
 
 type SidebarProps = {
     isOpen: boolean;
@@ -71,33 +61,7 @@ export default function Sidebar({ isOpen, isMobile, navbarHeight = 64, onClose }
                                 <History className="w-5 h-5" />
                                 Historical Routes
                             </Link>
-                            <Link
-                                href="/chat"
-                                className="flex items-center gap-2 text-zinc-700 dark:text-zinc-200 hover:text-blue-600 dark:hover:text-blue-400 font-medium transition-colors"
-                            >
-                                <MessageCircle className="w-5 h-5" />
-                                Chat
-                            </Link>
-                            <Link
-                                href="/table"
-                                className="flex items-center gap-2 text-zinc-700 dark:text-zinc-200 hover:text-blue-600 dark:hover:text-blue-400 font-medium transition-colors"
-                            >
-                                <Table2 className="w-5 h-5" />
-                                Tables
-                            </Link>
-                            <Link
-                                href="/settings"
-                                className="flex items-center gap-2 text-zinc-700 dark:text-zinc-200 hover:text-blue-600 dark:hover:text-blue-400 font-medium transition-colors"
-                            >
-                                <Settings className="w-5 h-5" />
-                                Settings
-                            </Link>
                         </nav>
-                        <div className="flex-1" />
-                        <button className="flex items-center gap-2 text-red-600 dark:text-red-400 font-semibold hover:underline mt-8 cursor-pointer">
-                            <LogOut className="w-5 h-5" />
-                            Logout
-                        </button>
                     </div>
                 </aside>
             </>
@@ -149,26 +113,7 @@ export default function Sidebar({ isOpen, isMobile, navbarHeight = 64, onClose }
                         <History className="w-5 h-5" />
                         Historical Routes
                     </Link>
-                    <Link
-                        href="/chat"
-                        className="flex items-center gap-2 text-zinc-700 dark:text-zinc-200 hover:text-blue-600 dark:hover:text-blue-400 font-medium transition-colors"
-                    >
-                        <MessageCircle className="w-5 h-5" />
-                        Chat
-                    </Link>
-                    <Link
-                        href="/table"
-                        className="flex items-center gap-2 text-zinc-700 dark:text-zinc-200 hover:text-blue-600 dark:hover:text-blue-400 font-medium transition-colors"
-                    >
-                        <Table2 className="w-5 h-5" />
-                        Tables
-                    </Link>
                 </nav>
-                <div className="flex-1" />
-                <button className="flex items-center gap-2 text-red-600 dark:text-red-400 font-semibold hover:underline mt-8 cursor-pointer">
-                    <LogOut className="w-5 h-5" />
-                    Logout
-                </button>
             </div>
         </aside>
     );
