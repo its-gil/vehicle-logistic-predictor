@@ -70,11 +70,11 @@ export default function DelayDashboard() {
     };
 
     return (
-        <div className="flex flex-row justify-between gap-8 px-12 py-6 bg-zinc-900 rounded-lg shadow-lg ">
+        <div className="flex flex-row justify-between gap-8 px-12 py-6 bg-zinc-900 rounded-lg shadow-lg">
             <form onSubmit={handleSubmit} className="flex flex-col justify-between gap-4">
                 <div className="flex flex-col gap-4">
                     <div className="text-white rounded flex flex-col justify-center">
-                        <h1 className="text-4xl font-semibold mb-4">Delay Prediction</h1>
+                        <h1 className="text-2xl font-semibold mb-4">Delay Prediction</h1>
                     </div>
                     <div className="flex flex-row gap-4">
                         <input
@@ -83,7 +83,7 @@ export default function DelayDashboard() {
                             placeholder="Latitude"
                             value={localLat}
                             onChange={(e) => setLocalLat(e.target.value)}
-                            className="p-2 rounded bg-zinc-800 border border-zinc-700 text-white text-sm"
+                            className="p-2 rounded bg-zinc-800 border border-zinc-700 text-white"
                             required
                         />
                         <input
@@ -92,7 +92,7 @@ export default function DelayDashboard() {
                             placeholder="Longitude"
                             value={localLon}
                             onChange={(e) => setLocalLon(e.target.value)}
-                            className="p-2 rounded bg-zinc-800 border border-zinc-700 text-white text-sm"
+                            className="p-2 rounded bg-zinc-800 border border-zinc-700 text-white"
                             required
                         />
                     </div>
@@ -102,14 +102,14 @@ export default function DelayDashboard() {
                         placeholder="Course"
                         value={localCourse}
                         onChange={(e) => setLocalCourse(e.target.value)}
-                        className="p-2 rounded bg-zinc-800 border border-zinc-700 text-white text-sm"
+                        className="p-2 rounded bg-zinc-800 border border-zinc-700 text-white"
                         required
                     />
                 </div>
                 <select
                     value={localDestination}
                     onChange={(e) => setLocalDestination(e.target.value)}
-                    className="p-2 rounded bg-zinc-800 border border-zinc-700 text-white text-sm"
+                    className="p-2 rounded bg-zinc-800 border border-zinc-700 text-white"
                 >
                     {cityPortList
                         .slice() // Create a shallow copy to avoid mutating the original array
@@ -122,7 +122,7 @@ export default function DelayDashboard() {
                 </select>
                 <button
                     type="submit"
-                    className="p-2 bg-yellow-500 hover:bg-yellow-400 text-white font-bold rounded text-sm"
+                    className="p-2 bg-yellow-500 hover:bg-yellow-400 text-white font-bold rounded cursor-pointer"
                 >
                     Submit
                 </button>
@@ -131,9 +131,9 @@ export default function DelayDashboard() {
                 {isLoading ? (
                     <OverlayLoading />
                 ) : (
-                    <p className="text-9xl">
+                    <p className="text-6xl">
                         {delayInfo?.delay ?? "-"}
-                        <span className="text-4xl"> h</span>
+                        <span className="text-3xl"> h</span>
                     </p>
                 )}
             </div>

@@ -27,7 +27,7 @@ export function MapDashboard(props: MapType) {
     return (
         <div className="relative h-full">
             <WorldMap>
-                <div className="flex flex-col absolute top-3 left-6 z-502 pointer-events-auto">
+                <div className="flex flex-col absolute top-3 left-6 z-503 pointer-events-auto">
                     <DelayDashboard />
                 </div>
                 <div className="flex flex-row gap-4 absolute top-3 right-6 z-502 pointer-events-auto">

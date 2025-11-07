@@ -19,7 +19,7 @@ export default function OverlayLegend({ items }: { items: LegendItem[] }) {
                 <div className="p-4 mb-4 rounded-xl shadow-lg w-96 z-50 bg-black text-white">
                     <h3 className="text-lg font-bold mb-4">Map Legend</h3>
                     <div className="flex flex-row">
-                        <div className="flex flex-col items-center justify-center space-y-4 text-sm">
+                        <div className="flex flex-col items-center justify-center space-y-3 text-sm">
                             {items.includes("ship_legend") && (
                                 <div className="flex items-center h-8">
                                     <img src={getIconUrl("ship_standard")} alt="Ship Icon" className="w-6 h-6 mr-4" />
@@ -85,7 +85,7 @@ export default function OverlayLegend({ items }: { items: LegendItem[] }) {
                                 </div>
                             )}
                         </div>
-                        <div className="flex flex-col justify-center space-y-4 text-sm">
+                        <div className="flex flex-col justify-center space-y-3 text-sm">
                             {items.includes("ship_legend") && (
                                 <div className="flex items-center h-8">
                                     <span>Current ship location</span>
