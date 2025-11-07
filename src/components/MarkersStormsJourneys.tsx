@@ -1,19 +1,19 @@
-import { useMapIcons } from "@/hooks/useMapIcons";
 import { MarkersStormsProps } from "@/types/maps";
 import { Marker, Tooltip } from "react-leaflet";
+import type L from "leaflet";
+import { IconName } from "@/types";
 
-export default function MarkersStormsJourneys(props: MarkersStormsProps) {
-    const { storms } = props;
-    const { icons } = useMapIcons();
+interface Props extends MarkersStormsProps {
+    icons: Record<IconName, L.Icon>;
+}
+
+export default function MarkersStormsJourneys(props: Props) {
+    const { storms, icons } = props;
 
     return (
         <>
             {(storms ?? []).map((storm, idx) => (
-                <Marker
-                    key={`storm-${idx}`}
-                    position={[storm.lat ?? storm.lat, storm.lon ?? storm.lon]}
-                    icon={icons?.storm}
-                >
+                <Marker key={`storm-${idx}`} position={[storm.lat, storm.lon]} icon={icons.storm}>
                     <Tooltip direction="top" offset={[0, -5]} opacity={1} permanent={false}>
                         <div>
                             <div className="font-bold text-red-600">{storm.name}</div>
