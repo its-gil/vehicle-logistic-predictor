@@ -60,12 +60,12 @@ export default function OverlayJourneyFilter({
                 <label className="text-sm font-semibold text-white">
                     {filterType === "journey_id" ? "Journey ID" : "MMSI"}
                     <select
-                        className="ml-2 p-1 rounded border cursor-pointer"
+                        className="ml-2 p-1 rounded border cursor-pointer bg-black text-white"
                         value={selectedId}
                         onChange={(e) => onSelectedIdChange(e.target.value)}
                     >
                         {options.map((id) => (
-                            <option key={id} value={id}>
+                            <option key={id} value={id} className="bg-black text-white">
                                 {id}
                             </option>
                         ))}

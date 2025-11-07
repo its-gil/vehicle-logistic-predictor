@@ -87,9 +87,11 @@ export async function GET(req: Request) {
         const scalerPath = path.join(process.cwd(), "src", "utils", "model_scaler.pkl");
 
         // Call the Python script to make the prediction
+        // Use 'python' on Windows, 'python3' on Unix-like systems
+        const pythonCommand = process.platform === "win32" ? "python" : "python3";
         const prediction = await new Promise<string>((resolve, reject) => {
             const pythonProcess = spawn(
-                "python3",
+                pythonCommand,
                 [
                     path.join(process.cwd(), "src", "utils", "predict_delay.py"),
                     modelPath,
