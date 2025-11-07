@@ -4,6 +4,7 @@ import React, { useState } from "react";
 import { cityPortList } from "@/constants";
 import { useDelay } from "@/providers/DelayProvider";
 import { useStorms } from "@/providers/StormsProvider";
+import OverlayLoading from "./OverlayLoading";
 
 export default function DelayDashboard() {
     const [localLat, setLocalLat] = useState<string>("");
@@ -11,6 +12,7 @@ export default function DelayDashboard() {
     const [localCourse, setLocalCourse] = useState<string>("");
     const [localDestination, setLocalDestination] = useState<string>(cityPortList[12].name);
     const [localApiError, setLocalApiError] = useState<string | null>(null);
+    const [isLoading, setIsLoading] = useState<boolean>(false);
 
     const { atlanticStorms } = useStorms();
     const { delayInfo, setDelayInfo } = useDelay();
@@ -18,10 +20,12 @@ export default function DelayDashboard() {
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setLocalApiError(null);
+        setIsLoading(true);
 
         const selectedPort = cityPortList.find((port) => port.name === localDestination);
         if (!selectedPort) {
             setLocalApiError("Invalid destination selected.");
+            setIsLoading(false);
             return;
         }
 
@@ -60,6 +64,8 @@ export default function DelayDashboard() {
             }
         } catch (error) {
             setLocalApiError("An error occurred while calling the API.");
+        } finally {
+            setIsLoading(false);
         }
     };
 
@@ -122,10 +128,14 @@ export default function DelayDashboard() {
                 </button>
             </form>
             <div className="text-white rounded flex flex-col justify-end">
-                <p className="text-9xl">
-                    {delayInfo?.delay ?? "-"}
-                    <span className="text-4xl"> h</span>
-                </p>
+                {isLoading ? (
+                    <OverlayLoading />
+                ) : (
+                    <p className="text-9xl">
+                        {delayInfo?.delay ?? "-"}
+                        <span className="text-4xl"> h</span>
+                    </p>
+                )}
             </div>
             {localApiError && (
                 <div className="flex flex-col bg-zinc-900 text-white rounded-lg shadow-lg justify-between">

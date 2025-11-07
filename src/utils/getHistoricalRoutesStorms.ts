@@ -26,7 +26,9 @@ export function getHistoricalRoutesStorms(start_date: string, end_date: string):
 
     const csvText = fs.readFileSync(csvPath, "utf8");
     const lines = csvText.trim().split("\n");
-    const header = lines[0].split(",");
+    const header = lines[0].split(",").map((col) => col.trim());
+
+    console.log("CSV Headers:", header);
 
     // Map column indices
     const stormIdIdx = header.indexOf("storm_id");
@@ -37,6 +39,17 @@ export function getHistoricalRoutesStorms(start_date: string, end_date: string):
     const windIdx = header.indexOf("max_sustained_wind");
     const datetimeIdx = header.indexOf("datetime");
     const systemStatusDescIdx = header.indexOf("system_status_desc");
+
+    console.log("Column indices:", {
+        stormIdIdx,
+        stormNameIdx,
+        systemStatusIdx,
+        latIdx,
+        lonIdx,
+        windIdx,
+        datetimeIdx,
+        systemStatusDescIdx,
+    });
 
     // Validate required columns
     if (
@@ -49,7 +62,16 @@ export function getHistoricalRoutesStorms(start_date: string, end_date: string):
         datetimeIdx === -1 ||
         systemStatusDescIdx === -1
     ) {
-        throw new Error("Missing required columns in the CSV file.");
+        const missing = [];
+        if (stormIdIdx === -1) missing.push("storm_id");
+        if (stormNameIdx === -1) missing.push("storm_name");
+        if (systemStatusIdx === -1) missing.push("system_status");
+        if (latIdx === -1) missing.push("lat");
+        if (lonIdx === -1) missing.push("lon");
+        if (windIdx === -1) missing.push("max_sustained_wind");
+        if (datetimeIdx === -1) missing.push("datetime");
+        if (systemStatusDescIdx === -1) missing.push("system_status_desc");
+        throw new Error(`Missing required columns in the CSV file: ${missing.join(", ")}`);
     }
 
     // Parse and filter storms
