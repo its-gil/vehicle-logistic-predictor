@@ -7,6 +7,10 @@ export default function MarkersStorms(props: MarkersStormsProps) {
     const { storms } = props;
     const { icons, isLoading } = useMapIcons();
 
+    if (isLoading || !icons) {
+        return null;
+    }
+
     return (
         <>
             {!isLoading &&

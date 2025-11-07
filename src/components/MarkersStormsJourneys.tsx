@@ -1,14 +1,14 @@
+import { useMapIcons } from "@/hooks/useMapIcons";
 import { MarkersStormsProps } from "@/types/maps";
 import { Marker, Tooltip } from "react-leaflet";
-import type L from "leaflet";
-import { IconName } from "@/types";
 
-interface Props extends MarkersStormsProps {
-    icons: Record<IconName, L.Icon>;
-}
+export default function MarkersStormsJourneys(props: MarkersStormsProps) {
+    const { storms } = props;
+    const { icons, isLoading } = useMapIcons();
 
-export default function MarkersStormsJourneys(props: Props) {
-    const { storms, icons } = props;
+    if (isLoading || !icons) {
+        return null;
+    }
 
     return (
         <>

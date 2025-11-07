@@ -11,6 +11,10 @@ export default function MarkerShip() {
     const submittedDestinationCoordinates = delayInfo?.destinationCoordinates;
     const submittedCourse = delayInfo?.course;
 
+    if (isLoading || !icons) {
+        return null;
+    }
+
     return (
         <>
             {submittedShipCoordinates &&
