@@ -10,17 +10,18 @@ export const DelayProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     const [delayInfo, setDelayInfo] = useState<DelayInfo>({
         shipCoordinates: { lat: null, lon: null },
         destinationCoordinates: { lat: null, lon: null },
-        course: "-",
-        delay: "-",
+        course: null,
+        delay: null,
     });
 
     const [rotatedShipIcon, setRotatedShipIcon] = useState<L.DivIcon | null>(null);
 
     // Automatically update the rotated ship icon whenever the course changes, with lazy loading
     useEffect(() => {
-        if (delayInfo.course && delayInfo.course !== "-") {
+        const course = delayInfo.course;
+        if (course !== null) {
             import("@/constants/iconConstants").then(({ getRotatedShipIcon }) => {
-                const icon = getRotatedShipIcon(parseFloat(delayInfo.course));
+                const icon = getRotatedShipIcon(parseFloat(course));
                 if (icon) {
                     setRotatedShipIcon(icon);
                 }
