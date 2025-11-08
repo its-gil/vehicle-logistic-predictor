@@ -6,7 +6,7 @@ export default function MarkersPotentialStorms(props: MarkersPotentialStormsProp
     const { icons, isLoading } = useMapIcons();
     const { noaaPoints, arrows, regions } = props;
 
-    if (isLoading || !icons) {
+    if (isLoading || !icons || !noaaPoints || !Array.isArray(noaaPoints)) {
         return null;
     }
 

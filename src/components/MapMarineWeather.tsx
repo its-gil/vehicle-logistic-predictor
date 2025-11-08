@@ -10,14 +10,16 @@ import { MapType } from "@/types";
 import { viewLegends } from "@/constants/legendConstants";
 import MarkerDestination from "./MarkerDestination";
 import MarkerShip from "./MarkerShip";
+import ButtonFetchMarineWeather from "./ButtonFetchMarineWeather";
 
 export function MapMarineWeather(props: MapType) {
-    const { marineWeather, timestamp, loading } = props;
+    const { marineWeather, timestamp, loading: isInitialLoading } = props;
 
     return (
         <div className="relative w-full h-full">
             <MapWorld center={[40, -30]} zoom={3}>
-                {loading && <OverlayLoading />}
+                {isInitialLoading && <OverlayLoading />}
+                <ButtonFetchMarineWeather />
                 <MarkersMarineArrows data={marineWeather} />
                 <MarkerShip />
                 <MarkerDestination />

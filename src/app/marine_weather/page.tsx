@@ -1,7 +1,7 @@
 "use client";
 import dynamic from "next/dynamic";
 import { useMarineWeather } from "@/providers/MarineWeatherProvider";
-import { marineWeatherFeatureNames, viewLegends } from "@/constants";
+import { marineWeatherFeatureNames } from "@/constants";
 import { formatTimestamp } from "@/utils/formatTimestamp";
 import MarineWeatherComponent from "@/components/MarineWeatherComponent";
 import FilterAlertsWeather from "@/components/FilterAlertsWeather";
@@ -15,14 +15,13 @@ const MapMarineWeather = dynamic(() => import("@/components/MapMarineWeather").t
 });
 
 export default function MarineWeatherPage() {
-    const { marineWeather, timestamp, loadingMarineWeather } = useMarineWeather();
+    const { marineWeather, timestamp, loadingMarineWeather, isRefreshing } = useMarineWeather();
 
     const [marineDashboardMode, setMarineDashboardMode] = useState<DashboardMode>("alerts");
 
     const [atlanticAlertsResponse, setAtlanticAlertsResponse] = useState<AlertsResponse | null>(null);
     const [loadingAtlanticAlerts, setLoadingAtlanticAlerts] = useState<boolean>(true);
     const [averages, setAverages] = useState<Record<string, number | null> | null>(null);
-    const [loadingAverages, setLoadingAverages] = useState<boolean>(true);
 
     useEffect(() => {
         async function fetchAlerts() {
@@ -43,11 +42,11 @@ export default function MarineWeatherPage() {
     }, []);
 
     useEffect(() => {
-        if (!loadingMarineWeather && marineWeather.length > 0) {
+        if (marineWeather.length > 0) {
             const calculatedAverages: Record<string, number | null> = {};
             marineWeatherFeatureNames.forEach((feature) => {
                 const values = marineWeather
-                    .filter((data: any) => data && data[feature] !== null && data[feature] !== undefined) // Ensure valid data
+                    .filter((data: any) => data && data[feature] !== null && data[feature] !== undefined)
                     .map((data: any) => data[feature]);
                 const average =
                     values.length > 0
@@ -56,11 +55,10 @@ export default function MarineWeatherPage() {
                 calculatedAverages[feature] = average;
             });
             setAverages(calculatedAverages);
-            setLoadingAverages(false);
-        } else if (marineWeather.length === 0) {
+        } else {
             setAverages(null);
         }
-    }, [loadingMarineWeather, marineWeather]);
+    }, [marineWeather]);
 
     return (
         <div
@@ -86,7 +84,7 @@ export default function MarineWeatherPage() {
                     {marineDashboardMode === "weather" && (
                         <MarineWeatherComponent
                             marineWeatherAverages={averages}
-                            loadingMarineWeather={loadingAverages}
+                            loadingMarineWeather={loadingMarineWeather}
                         />
                     )}
                 </div>

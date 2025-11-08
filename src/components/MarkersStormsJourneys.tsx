@@ -6,7 +6,7 @@ export default function MarkersStormsJourneys(props: MarkersStormsProps) {
     const { storms } = props;
     const { icons, isLoading } = useMapIcons();
 
-    if (isLoading || !icons) {
+    if (isLoading || !icons || !storms || !Array.isArray(storms)) {
         return null;
     }
 
