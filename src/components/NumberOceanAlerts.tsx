@@ -40,14 +40,17 @@ export default function NumberOceanAlerts() {
     return (
         <button
             onClick={() => router.push("/marine_weather")}
-            className="flex flex-col flex-1 justify-between p-6 bg-black text-white rounded-lg shadow-lg hover:bg-zinc-800 transition cursor-pointer text-left"
+            className="flex flex-col justify-between p-6 bg-black text-white rounded-lg shadow-lg hover:bg-zinc-800 transition cursor-pointer text-left min-w-50"
         >
-            <h1 className="text-2xl font-semibold mb-4">Ocean Alerts</h1>
+            <h1 className="text-md sm:text-lg lg:text-xl font-semibold mb-3 sm:mb-4">
+                Ocean <br />
+                Alerts
+            </h1>
             {loading ? (
                 <OverlayLoading />
             ) : (
                 <div className="flex flex-row items-center justify-between">
-                    <p className="text-4xl">{alerts.length}</p>
+                    <p className="text-2xl sm:text-3xl lg:text-4xl">{alerts.length}</p>
                     <div className={`w-3 h-3 rounded-full ${dotColor}`} />
                 </div>
             )}

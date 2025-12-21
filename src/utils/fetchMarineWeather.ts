@@ -1,6 +1,6 @@
 import { MarineWeatherResult } from "@/types/";
 
-export async function getMarineWeather(lat: number, lon: number): Promise<MarineWeatherResult | null> {
+export async function fetchMarineWeather(lat: number, lon: number): Promise<MarineWeatherResult | null> {
     const wind_url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=wind_speed_10m,wind_direction_10m`;
     const marine_url = `https://marine-api.open-meteo.com/v1/marine?latitude=${lat}&longitude=${lon}&current=wave_height,wave_direction,wave_period,wind_wave_height,wind_wave_direction,wind_wave_period,swell_wave_height,swell_wave_direction,swell_wave_period,ocean_current_velocity,ocean_current_direction`;
 
@@ -65,6 +65,7 @@ export async function getMarineWeather(lat: number, lon: number): Promise<Marine
             swell_wave_period,
             ocean_current_velocity,
             ocean_current_direction,
+            timestamp: new Date(),
         };
     } catch (error) {
         console.error("Error fetching marine weather:", error);

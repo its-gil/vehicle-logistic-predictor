@@ -11,6 +11,10 @@ export default function MarkerDestination() {
     const submittedDestinationCoordinates = delayInfo?.destinationCoordinates;
     const submittedCourse = delayInfo?.course;
 
+    if (isLoading || !icons) {
+        return null;
+    }
+
     return (
         <>
             {submittedDestinationCoordinates &&

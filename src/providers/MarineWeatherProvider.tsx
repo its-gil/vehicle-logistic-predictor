@@ -1,45 +1,64 @@
-import React, { createContext, useContext, useEffect, useState } from "react";
+import React, { createContext, useContext, useEffect, useState, useCallback } from "react";
 import { MarineWeatherResult, MarineWeatherContextType } from "@/types";
-import { REPEATING_COORDINATES } from "@/constants/repeatingCoordinates";
 
 const MarineWeatherContext = createContext<MarineWeatherContextType>({
     marineWeather: [],
     timestamp: new Date(0),
     loadingMarineWeather: true,
+    refetchMarineWeather: async () => {},
+    isRefreshing: false,
 });
 
 export function MarineWeatherProvider({ children }: { children: React.ReactNode }) {
     const [marineWeather, setMarineWeather] = useState<MarineWeatherResult[]>([]);
+    const [timestamp, setTimestamp] = useState<Date>(new Date(0));
     const [loadingMarineWeather, setLoadingMarineWeather] = useState(true);
+    const [isRefreshing, setIsRefreshing] = useState(false);
 
-    useEffect(() => {
-        async function fetchMarineWeatherGeneral() {
+    const fetchMarineWeatherGeneral = useCallback(async (forceRefresh = false) => {
+        if (forceRefresh) {
+            setIsRefreshing(true);
+        } else {
             setLoadingMarineWeather(true);
-            console.log("Fetching marine weather data...");
-            const results: MarineWeatherResult[] = [];
-            try {
-                // Fetch marine weather for each coordinate using the API
-                for (const { lat, lon } of REPEATING_COORDINATES) {
-                    // eslint-disable-next-line no-await-in-loop
-                    const response = await fetch(`/api/marine-weather?lat=${lat}&lon=${lon}`);
-                    if (!response.ok) {
-                        throw new Error(`Failed to fetch marine weather for lat=${lat}, lon=${lon}`);
-                    }
-                    const weather: MarineWeatherResult = await response.json();
-                    results.push(weather);
-                }
-                setMarineWeather(results);
-                console.log("Fetched a number of marine weather points:", results.length);
-            } catch (error) {
-                console.error("Error fetching marine weather data:", error);
-            }
-            setLoadingMarineWeather(false);
         }
-        fetchMarineWeatherGeneral();
+
+        try {
+            const url = forceRefresh ? `/api/marine-weather?force=true` : `/api/marine-weather`;
+            const response = await fetch(url);
+            if (!response.ok) {
+                throw new Error("Failed to fetch marine weather");
+            }
+            const data = await response.json();
+
+            setMarineWeather(data.results);
+            setTimestamp(new Date(data.timestamp));
+            console.log("Loaded marine weather points:", data.results.length);
+            console.log("Timestamp:", data.timestamp);
+        } catch (error) {
+            console.error("Error fetching marine weather data:", error);
+            setMarineWeather([]);
+            setTimestamp(new Date(0));
+        } finally {
+            if (forceRefresh) {
+                setIsRefreshing(false);
+            } else {
+                setLoadingMarineWeather(false);
+            }
+        }
     }, []);
 
+    const refetchMarineWeather = useCallback(async () => {
+        await fetchMarineWeatherGeneral(true);
+    }, [fetchMarineWeatherGeneral]);
+
+    useEffect(() => {
+        fetchMarineWeatherGeneral(false);
+    }, [fetchMarineWeatherGeneral]);
+
     return (
-        <MarineWeatherContext.Provider value={{ marineWeather, timestamp: new Date(), loadingMarineWeather }}>
+        <MarineWeatherContext.Provider
+            value={{ marineWeather, timestamp, loadingMarineWeather, refetchMarineWeather, isRefreshing }}
+        >
             {children}
         </MarineWeatherContext.Provider>
     );

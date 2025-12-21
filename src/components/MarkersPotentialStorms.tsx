@@ -6,6 +6,10 @@ export default function MarkersPotentialStorms(props: MarkersPotentialStormsProp
     const { icons, isLoading } = useMapIcons();
     const { noaaPoints, arrows, regions } = props;
 
+    if (isLoading || !icons || !noaaPoints || !Array.isArray(noaaPoints)) {
+        return null;
+    }
+
     function getColor(prob2day: number, prob7day: number): string {
         if (prob2day >= 75) return "red";
         if (prob2day >= 50) return "orange";

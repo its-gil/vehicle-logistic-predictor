@@ -1,6 +1,6 @@
 import React from "react";
 import Link from "next/link";
-import { LayoutDashboard, MessageCircle, Table2, LogOut, History, CloudLightning, Anchor, Waves } from "lucide-react";
+import { LayoutDashboard, History, CloudLightning, Anchor, Waves } from "lucide-react";
 
 type SidebarProps = {
     isOpen: boolean;

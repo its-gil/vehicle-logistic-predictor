@@ -4,16 +4,16 @@ import { Marker, Tooltip } from "react-leaflet";
 
 export default function MarkersStormsJourneys(props: MarkersStormsProps) {
     const { storms } = props;
-    const { icons } = useMapIcons();
+    const { icons, isLoading } = useMapIcons();
+
+    if (isLoading || !icons || !storms || !Array.isArray(storms)) {
+        return null;
+    }
 
     return (
         <>
             {(storms ?? []).map((storm, idx) => (
-                <Marker
-                    key={`storm-${idx}`}
-                    position={[storm.lat ?? storm.lat, storm.lon ?? storm.lon]}
-                    icon={icons?.storm}
-                >
+                <Marker key={`storm-${idx}`} position={[storm.lat, storm.lon]} icon={icons.storm}>
                     <Tooltip direction="top" offset={[0, -5]} opacity={1} permanent={false}>
                         <div>
                             <div className="font-bold text-red-600">{storm.name}</div>

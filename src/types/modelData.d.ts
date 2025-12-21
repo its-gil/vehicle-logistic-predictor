@@ -28,8 +28,8 @@ export type PrepareModelDataOutput = {
 export type DelayInfo = {
     shipCoordinates: { lat: number | null; lon: number | null };
     destinationCoordinates: { lat: number | null; lon: number | null };
-    course: string;
-    delay: string;
+    course: string | null;
+    delay: string | null;
 };
 
 export type DelayContextType = {

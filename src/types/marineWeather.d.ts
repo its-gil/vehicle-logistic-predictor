@@ -16,12 +16,15 @@ export type MarineWeatherResult = {
     swell_wave_period: number | null;
     ocean_current_velocity: number | null;
     ocean_current_direction: number | null;
+    timestamp: Date;
 };
 
 export type MarineWeatherContextType = {
     marineWeather: MarineWeatherResult[];
     timestamp: Date;
     loadingMarineWeather?: boolean;
+    refetchMarineWeather: () => Promise<void>;
+    isRefreshing: boolean;
 };
 
 export type MarineWeatherInput = {
